@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "title": "The Secret Formula to Success 🚀",
+    "hook": "Most people completely overlook this one crucial rule.",
+    "start_time": 3.5,
+    "end_time": 23.5,
+    "duration": 20.0,
+    "virality_score": 97,
+    "hook_score": 98,
+    "flow_score": 94,
+    "engagement_score": 96,
+    "reason": "Strong pattern-interrupt hook and high viewer curiosity gap.",
+    "social_copy": {
+      "youtube": "The Secret Formula to Success (Never Seen Before) 🚀 #Shorts #Success #Growth #Mindset",
+      "tiktok": "This 1 rule changed everything for me 🤯 #fyp #foryou #viral #growthtips",
+      "instagram": "Are you making this mistake? Save this for later! 💡 #reels #motivation #success"
+    },
+    "video_file": "clip_1_The_Secret_Formula_to_Suc.mp4",
+    "download_url": "/download/clip_1_The_Secret_Formula_to_Suc.mp4",
+    "preview_url": "/stream/clip_1_The_Secret_Formula_to_Suc.mp4",
+    "created_at": "2026-11-15 22:10"
+  },
+  {
+    "id": 2,
+    "title": "Why Everything You Knew Is Changing 💡",
+    "hook": "Here is what happens when you take the leap.",
+    "start_time": 21.0,
+    "end_time": 35.0,
+    "duration": 14.0,
+    "virality_score": 91,
+    "hook_score": 89,
+    "flow_score": 92,
+    "engagement_score": 90,
+    "reason": "Clear narrative arc with actionable takeaway for the audience.",
+    "social_copy": {
+      "youtube": "Why Everything You Knew Is Changing Today 💡 #Shorts #Future #Innovation",
+      "tiktok": "Wait till the end to see why this matters ⚡ #fyp #trending #tech #ideas",
+      "instagram": "Share this with someone who needs to hear it! 👇 #reels #inspiration"
+    },
+    "video_file": "clip_2_Why_Everything_You_Knew_I.mp4",
+    "download_url": "/download/clip_2_Why_Everything_You_Knew_I.mp4",
+    "preview_url": "/stream/clip_2_Why_Everything_You_Knew_I.mp4",
+    "created_at": "2026-11-15 22:11"
+  }
+]

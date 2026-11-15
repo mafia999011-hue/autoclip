@@ -4,6 +4,7 @@ from .reframer import VideoReframer
 from .gemini_client import GeminiClipperClient
 from .subtitler import SubtitleGenerator
 from .renderer import VideoRenderer
+from .storage import HistoryStorage
 
 class AutoClipPipeline:
     def __init__(self, api_key: str = None, output_dir: str = "output"):
@@ -91,6 +92,12 @@ class AutoClipPipeline:
                 "download_url": f"/download/{os.path.basename(clip_output_path)}",
                 "preview_url": f"/stream/{os.path.basename(clip_output_path)}"
             })
+
+        # Save to persistent history
+        try:
+            HistoryStorage(os.path.join(os.path.dirname(self.output_dir), "data", "history.json")).save_clips(rendered_clips)
+        except Exception as e:
+            print(f"Warning: Failed to save to history: {e}")
 
         update_progress("Complete! All Opus-style clips rendered successfully.", 100)
 

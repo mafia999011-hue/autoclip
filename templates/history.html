@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library & History — AutoClip</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <h1>Auto<span>Clip</span></h1>
+        <span class="badge">Library</span>
+      </div>
+
+      <nav class="nav-links">
+        <a href="/" class="nav-link">⚡ Studio</a>
+        <a href="/history" class="nav-link active">📁 Saved Library</a>
+      </nav>
+
+      <div class="api-key-box">
+        <span class="key-status-dot" id="keyDot"></span>
+        <input type="password" id="apiKeyInput" placeholder="Enter Google AI Studio Key...">
+        <button id="saveKeyBtn" class="btn-sm">Save Key</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Library Stats Bar -->
+      <section class="card history-header-card">
+        <div class="history-title-row">
+          <div>
+            <h2>📚 Generated Clips Library</h2>
+            <p class="subtitle">Access, re-download, copy social captions, or manage all your past AI shorts.</p>
+          </div>
+          <div class="stats-badge-group">
+            <div class="stat-pill">Total Clips: <strong id="totalClipsCount">0</strong></div>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <input type="text" id="searchInput" placeholder="🔍 Search clips by title or hook..." class="search-input">
+        </div>
+      </section>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">🎬</div>
+        <h3>No saved clips yet</h3>
+        <p>Generate your first viral short in the Studio to see it saved here automatically!</p>
+        <a href="/" class="btn-sm" style="display: inline-block; margin-top: 14px; text-decoration: none;">Go to Studio</a>
+      </div>
+
+      <!-- History Clips Grid -->
+      <section class="results-section">
+        <div class="clips-grid" id="historyClipsGrid">
+          <!-- Populated dynamically by history.js -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/js/history.js"></script>
+</body>
+</html>

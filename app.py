@@ -5,14 +5,19 @@ from flask import Flask, request, jsonify, render_template, send_from_directory,
 from werkzeug.utils import secure_filename
 from autoclip.pipeline import AutoClipPipeline
 from autoclip.youtube import download_youtube_video
+from autoclip.storage import HistoryStorage
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = os.path.expanduser("~/autoclip/uploads")
 app.config["OUTPUT_FOLDER"] = os.path.expanduser("~/autoclip/output")
+app.config["DATA_FOLDER"] = os.path.expanduser("~/autoclip/data")
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500 MB max
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["OUTPUT_FOLDER"], exist_ok=True)
+os.makedirs(app.config["DATA_FOLDER"], exist_ok=True)
+
+history_storage = HistoryStorage(os.path.join(app.config["DATA_FOLDER"], "history.json"))
 
 # In-memory session task tracking
 tasks = {}
@@ -21,6 +26,19 @@ api_key_store = {"key": os.environ.get("GEMINI_API_KEY", "")}
 @app.route("/")
 def index():
     return render_template("index.html", has_key=bool(api_key_store["key"]))
+
+@app.route("/history")
+def history_page():
+    return render_template("history.html")
+
+@app.route("/api/history", methods=["GET"])
+def get_history():
+    return jsonify(history_storage.get_all_clips())
+
+@app.route("/api/history/<filename>", methods=["DELETE"])
+def delete_history_clip(filename):
+    success = history_storage.delete_clip(filename, output_dir=app.config["OUTPUT_FOLDER"])
+    return jsonify({"status": "deleted" if success else "failed"})
 
 @app.route("/api/config", methods=["GET", "POST"])
 def config():
