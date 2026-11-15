@@ -1,4 +1,5 @@
 import os
+import json
 import uuid
 import threading
 from flask import Flask, request, jsonify, render_template, send_from_directory, Response
@@ -18,10 +19,36 @@ os.makedirs(app.config["OUTPUT_FOLDER"], exist_ok=True)
 os.makedirs(app.config["DATA_FOLDER"], exist_ok=True)
 
 history_storage = HistoryStorage(os.path.join(app.config["DATA_FOLDER"], "history.json"))
+CONFIG_FILE = os.path.join(app.config["DATA_FOLDER"], "config.json")
 
-# In-memory session task tracking
+def load_saved_key() -> str:
+    # 1. Environment variable
+    if os.environ.get("GEMINI_API_KEY"):
+        return os.environ.get("GEMINI_API_KEY").strip()
+    # 2. Config file
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("api_key", "").strip()
+        except Exception:
+            pass
+    return ""
+
+def save_persistent_key(key: str):
+    data = {}
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            pass
+    data["api_key"] = key.strip()
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+api_key_store = {"key": load_saved_key()}
 tasks = {}
-api_key_store = {"key": os.environ.get("GEMINI_API_KEY", "")}
 
 @app.route("/")
 def index():
@@ -46,8 +73,18 @@ def config():
         data = request.json or {}
         key = data.get("api_key", "").strip()
         api_key_store["key"] = key
-        return jsonify({"status": "ok", "has_key": bool(key)})
-    return jsonify({"has_key": bool(api_key_store["key"])})
+        save_persistent_key(key)
+        return jsonify({
+            "status": "ok",
+            "has_key": bool(key),
+            "masked_key": f"{key[:4]}...{key[-4:]}" if len(key) > 8 else ("✓ Set" if key else "")
+        })
+    
+    current_key = api_key_store["key"]
+    return jsonify({
+        "has_key": bool(current_key),
+        "masked_key": f"{current_key[:4]}...{current_key[-4:]}" if len(current_key) > 8 else ("✓ Set" if current_key else "")
+    })
 
 @app.route("/api/youtube", methods=["POST"])
 def fetch_youtube():

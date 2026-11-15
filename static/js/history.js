@@ -15,7 +15,7 @@ fetch('/api/config')
   .then(data => {
     if (data.has_key) {
       keyDot.classList.add('active');
-      apiKeyInput.placeholder = 'AI Studio Key Active ✓';
+      apiKeyInput.placeholder = `AI Studio Key (${data.masked_key}) ✓`;
     }
   });
 
@@ -31,7 +31,7 @@ saveKeyBtn.addEventListener('click', async () => {
   if (data.has_key) {
     keyDot.classList.add('active');
     apiKeyInput.value = '';
-    apiKeyInput.placeholder = 'AI Studio Key Saved ✓';
+    apiKeyInput.placeholder = `AI Studio Key (${data.masked_key}) ✓`;
   }
 });
 
