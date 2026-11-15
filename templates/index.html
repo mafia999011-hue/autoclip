@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoClip — AI Video Clipper (Opus Clip Alternative)</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <h1>Auto<span>Clip</span></h1>
+        <span class="badge">AI Studio Powered</span>
+      </div>
+      <div class="api-key-box">
+        <span class="key-status-dot" id="keyDot"></span>
+        <input type="password" id="apiKeyInput" placeholder="Enter Google AI Studio Key...">
+        <button id="saveKeyBtn" class="btn-sm">Save Key</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Upload & Settings Section -->
+      <section class="card upload-card">
+        <h2>Turn Long Videos into Viral Shorts</h2>
+        <p class="subtitle">Extracts high-retention moments, reframes to 9:16, and burns animated karaoke subtitles.</p>
+
+        <div class="input-tabs">
+          <button type="button" class="tab-btn active" id="tabUpload">📁 Upload Video File</button>
+          <button type="button" class="tab-btn" id="tabYoutube">▶️ YouTube URL</button>
+        </div>
+
+        <div id="fileUploadContainer">
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="videoFileInput" accept="video/mp4,video/quicktime,video/x-matroska" hidden>
+            <div class="drop-icon">🎬</div>
+            <div class="drop-text">
+              <strong>Drag and drop video here</strong> or <span class="browse-link">browse file</span>
+            </div>
+            <div class="file-name-display" id="fileNameDisplay"></div>
+          </div>
+        </div>
+
+        <div id="youtubeContainer" style="display: none;">
+          <div class="youtube-input-box">
+            <input type="url" id="youtubeUrlInput" placeholder="Paste YouTube link (e.g. https://www.youtube.com/watch?v=...)">
+            <button type="button" id="fetchYtBtn" class="btn-sm">Fetch Video</button>
+          </div>
+          <div class="file-name-display" id="ytStatusDisplay"></div>
+        </div>
+
+        <!-- Generation Settings -->
+        <div class="settings-grid">
+          <div class="setting-item">
+            <label>🎬 Number of Clips</label>
+            <select id="clipCount">
+              <option value="1">1 Clip (⚡ Fastest)</option>
+              <option value="3" selected>3 Clips (Recommended)</option>
+              <option value="5">5 Clips</option>
+              <option value="10">10 Clips (Batch)</option>
+              <option value="auto">Auto (AI decides)</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label>⏱ Target Clip Length</label>
+            <select id="lengthPref">
+              <option value="auto" selected>⚡ Auto (AI chooses best length)</option>
+              <option value="<30s">&lt; 30s (Quick viral hook / TikTok)</option>
+              <option value="30-60s">30s - 60s (Standard Shorts & Reels)</option>
+              <option value="60-90s">60s - 90s (Deep-dive narrative)</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label>🎨 Subtitle Preset & Style</label>
+            <select id="subtitlePreset">
+              <option value="hormozi" selected>🟡 Hormozi Bold Yellow (Top Performing)</option>
+              <option value="mrbeast">🟢 MrBeast Neon Green</option>
+              <option value="cyberpunk">🔵 Cyberpunk Cyan & Violet</option>
+              <option value="sunset">🟣 Sunset Vibrant Pink</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label>📐 9:16 Aspect Framing</label>
+            <select id="reframeMode">
+              <option value="blurred_background" selected>✨ Blurred Background 9:16 (Standard)</option>
+              <option value="center_crop">🎯 Center Speaker Crop 9:16</option>
+            </select>
+          </div>
+
+          <div class="setting-item checkbox-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="enableEmojis" checked>
+              <span>🔥 AI Auto-Insert Viral Emojis</span>
+            </label>
+          </div>
+        </div>
+
+        <button id="generateBtn" class="btn-primary" disabled>
+          <span>🚀 Generate Viral Clips</span>
+        </button>
+      </section>
+
+      <!-- Processing Progress Section -->
+      <section class="card progress-card" id="progressSection" style="display: none;">
+        <h3>Processing Your Video</h3>
+        <p class="status-msg" id="statusMessage">Analyzing transcript and scoring hooks...</p>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="progress-pct" id="progressPct">0%</div>
+      </section>
+
+      <!-- Results Grid -->
+      <section class="results-section" id="resultsSection" style="display: none;">
+        <div class="results-header">
+          <h2>🔥 Generated Viral Shorts</h2>
+          <p id="resultsSummary" class="results-summary"></p>
+        </div>
+
+        <div class="clips-grid" id="clipsGrid">
+          <!-- Clip cards populated dynamically -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

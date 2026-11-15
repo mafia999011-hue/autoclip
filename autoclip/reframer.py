@@ -1,0 +1,46 @@
+import subprocess
+import json
+
+class VideoReframer:
+    @staticmethod
+    def get_video_info(video_path: str) -> dict:
+        """Fetch video duration, width, height using ffprobe."""
+        cmd = [
+            "ffprobe", "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=width,height,duration:format=duration",
+            "-of", "json",
+            video_path
+        ]
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if res.returncode != 0:
+            return {"width": 1920, "height": 1080, "duration": 60.0}
+        
+        try:
+            data = json.loads(res.stdout.decode())
+            streams = data.get("streams", [{}])[0]
+            fmt = data.get("format", {})
+            width = int(streams.get("width", 1920))
+            height = int(streams.get("height", 1080))
+            dur_str = streams.get("duration") or fmt.get("duration") or "60.0"
+            duration = float(dur_str)
+            return {"width": width, "height": height, "duration": duration}
+        except Exception:
+            return {"width": 1920, "height": 1080, "duration": 60.0}
+
+    @staticmethod
+    def get_filter_complex(mode: str = "blurred_background") -> str:
+        """
+        Returns the FFmpeg filter_complex string for vertical 9:16 (1080x1920).
+        """
+        if mode == "center_crop":
+            # Crop center 9:16 region
+            return "[0:v]crop=ih*(9/16):ih:(iw-ow)/2:0,scale=1080:1920:flags=bicubic[v_reframed]"
+        
+        # Default: Blurred background with centered 16:9 subject
+        return (
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920,boxblur=25:5[bg];"
+            "[0:v]scale=1080:-2[fg];"
+            "[bg][fg]overlay=0:(1920-overlay_h)/2[v_reframed]"
+        )
