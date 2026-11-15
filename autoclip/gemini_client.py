@@ -29,7 +29,7 @@ class GeminiClipperClient:
         """
         Sends audio to Gemini to detect viral clips, generate social copy, and transcribe.
         """
-        if not self.api_key:
+        if not self.api_key or self.api_key.startswith("http"):
             return self._generate_fallback_clips(video_duration or 60.0, clip_count=clip_count)
 
         with open(audio_path, "rb") as f:

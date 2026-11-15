@@ -89,6 +89,17 @@ fetch('/api/config')
 saveKeyBtn.addEventListener('click', async () => {
   const key = apiKeyInput.value.trim();
   if (!key) return;
+
+  // Check if user accidentally pasted a video or web link
+  if (key.startsWith('http://') || key.startsWith('https://') || key.includes('youtu')) {
+    alert('⚠️ That looks like a video link, not an API key!\n\nWe have automatically moved it to the YouTube URL tab for you.');
+    tabYoutube.click();
+    youtubeUrlInput.value = key;
+    apiKeyInput.value = '';
+    apiKeyInput.placeholder = 'Enter Google AI Studio Key...';
+    return;
+  }
+
   const res = await fetch('/api/config', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

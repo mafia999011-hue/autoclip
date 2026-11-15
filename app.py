@@ -72,6 +72,8 @@ def config():
     if request.method == "POST":
         data = request.json or {}
         key = data.get("api_key", "").strip()
+        if key.startswith("http://") or key.startswith("https://") or "youtu" in key:
+            return jsonify({"status": "error", "error": "API key cannot be a URL", "has_key": False}), 400
         api_key_store["key"] = key
         save_persistent_key(key)
         return jsonify({
@@ -81,6 +83,10 @@ def config():
         })
     
     current_key = api_key_store["key"]
+    if current_key.startswith("http"):
+        current_key = ""
+        api_key_store["key"] = ""
+
     return jsonify({
         "has_key": bool(current_key),
         "masked_key": f"{current_key[:4]}...{current_key[-4:]}" if len(current_key) > 8 else ("✓ Set" if current_key else "")
