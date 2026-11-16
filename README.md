@@ -2,7 +2,7 @@
 
 > **Turn long-form videos (podcasts, streams, YouTube videos) into viral 9:16 vertical shorts with AI virality scoring, millisecond-accurate karaoke subtitles, active word bounce, auto-emojis, and multi-platform social captions.**
 
-[![GitHub Repo](https://img.shields.io/badge/GitHub-mafia999011--hue%2Fautoclip-blue?logo=github)](https://github.com/mafia999011-hue/autoclip)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-mafia999011--hue%2Fmoney--clip-blue?logo=github)](https://github.com/mafia999011-hue/money-clip)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-brightgreen?logo=python)](https://python.org)
 [![FFmpeg](https://img.shields.io/badge/FFmpeg-Hardware%20Accelerated-orange?logo=ffmpeg)](https://ffmpeg.org)
 [![Powered by](https://img.shields.io/badge/Powered%20by-Google%20AI%20Studio-blueviolet?logo=google)](https://aistudio.google.com/)
@@ -63,8 +63,8 @@
 pkg update && pkg install -y git python ffmpeg
 
 # 2. Clone the repository
-git clone https://github.com/mafia999011-hue/autoclip.git
-cd autoclip
+git clone https://github.com/mafia999011-hue/money-clip.git
+cd money-clip
 
 # 3. Install Python requirements
 pip install -r requirements.txt
@@ -79,8 +79,8 @@ python3 app.py
 sudo apt update && sudo apt install -y git python3 python3-pip ffmpeg
 
 # 2. Clone and enter repo
-git clone https://github.com/mafia999011-hue/autoclip.git
-cd autoclip
+git clone https://github.com/mafia999011-hue/money-clip.git
+cd money-clip
 
 # 3. Install requirements & start
 pip install -r requirements.txt
@@ -93,8 +93,8 @@ python3 app.py
 brew install git python ffmpeg
 
 # 2. Clone repo and run
-git clone https://github.com/mafia999011-hue/autoclip.git
-cd autoclip
+git clone https://github.com/mafia999011-hue/money-clip.git
+cd money-clip
 pip3 install -r requirements.txt
 python3 app.py
 ```
@@ -103,8 +103,8 @@ python3 app.py
 ```powershell
 # 1. Ensure Python and FFmpeg are installed and added to PATH
 # 2. Clone and run in PowerShell / Command Prompt
-git clone https://github.com/mafia999011-hue/autoclip.git
-cd autoclip
+git clone https://github.com/mafia999011-hue/money-clip.git
+cd money-clip
 pip install -r requirements.txt
 python app.py
 ```
@@ -195,7 +195,7 @@ Once started, open your browser and navigate to:
 ## 📁 Project Architecture
 
 ```
-autoclip/
+money-clip/
 ├── app.py                  # Flask Web server & REST endpoints
 ├── requirements.txt        # Python package dependencies
 ├── LICENSE                 # Open-source MIT License
