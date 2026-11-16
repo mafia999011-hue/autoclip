@@ -101,7 +101,6 @@ Output strictly valid JSON with this exact structure:
 Return ONLY raw JSON with no markdown backticks.
 """
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
         payload = {
             "contents": [
                 {
@@ -122,9 +121,17 @@ Return ONLY raw JSON with no markdown backticks.
             }
         }
 
-        response = requests.post(url, json=payload, timeout=120)
-        if response.status_code != 200:
-            raise RuntimeError(f"Gemini API Error ({response.status_code}): {response.text}")
+        # Some API keys or accounts do not have access to the newest model ID.
+        # Retry with a widely supported audio-capable Flash model on model-not-found.
+        response = None
+        models_to_try = list(dict.fromkeys([self.model, "gemini-2.5-flash"]))
+        for model in models_to_try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
+            response = requests.post(url, json=payload, timeout=120)
+            if response.status_code == 200:
+                break
+            if response.status_code != 404 or model == models_to_try[-1]:
+                raise RuntimeError(f"Gemini API Error ({response.status_code}): {response.text}")
 
         res_data = response.json()
         try:

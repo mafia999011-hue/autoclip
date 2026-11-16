@@ -28,7 +28,7 @@
 
 ## ✨ Key Features
 
-* **🔥 AI Virality Score™ & Hook Scoring:** Automatically calculates Hook strength (1–100), Narrative flow (1–100), and Engagement score using Google Gemini (`gemini-1.5-flash`).
+* **🔥 AI Virality Score™ & Hook Scoring:** Automatically calculates Hook strength (1–100), Narrative flow (1–100), and Engagement score using Google Gemini (Flash models with audio input support).
 * **✨ AI Auto-Emoji Engine:** Analyzes spoken keywords and inserts context-aware animated emojis directly into the subtitles (`MONEY` 💰, `FIRE` 🔥, `SUCCESS` 🏆, `SECRET` 🤫, `MIND` 🧠).
 * **🎨 4 Creator Subtitle Presets:** Includes *Hormozi Bold Yellow*, *MrBeast Neon Green*, *Cyberpunk Cyan*, and *Sunset Pink*.
 * **📐 Smart 9:16 Reframing:** Converts 16:9 widescreen videos to 1080x1920 portrait shorts with blurred background styling or center speaker crop.
