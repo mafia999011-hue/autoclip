@@ -7,7 +7,7 @@ import requests
 class GeminiClipperClient:
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY", "")
-        self.model = "gemini-1.5-flash"
+        self.model = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
 
     def extract_audio(self, video_path: str, output_audio_path: str = None) -> str:
         if not output_audio_path:
