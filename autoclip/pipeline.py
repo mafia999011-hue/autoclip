@@ -20,6 +20,7 @@ class AutoClipPipeline:
         enable_emojis: bool = True,
         length_pref: str = "auto",
         clip_count: str = "3",
+        caption_language: str = "auto",
         progress_callback = None
     ) -> dict:
         def update_progress(stage: str, percent: int):
@@ -33,8 +34,14 @@ class AutoClipPipeline:
         update_progress("Extracting audio track for Opus AI engine", 25)
         audio_path = self.client.extract_audio(video_path)
 
-        update_progress(f"Analyzing virality & hooks (Target: {clip_count} clips)", 45)
-        ai_result = self.client.analyze_video_audio(audio_path, video_duration, length_pref=length_pref, clip_count=clip_count)
+        update_progress(f"Analyzing virality & hooks ({caption_language.upper()} script, {clip_count} clips)", 45)
+        ai_result = self.client.analyze_video_audio(
+            audio_path,
+            video_duration,
+            length_pref=length_pref,
+            clip_count=clip_count,
+            caption_language=caption_language
+        )
 
         clips_data = ai_result.get("clips", [])
         rendered_clips = []

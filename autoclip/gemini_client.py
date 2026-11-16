@@ -25,12 +25,12 @@ class GeminiClipperClient:
             raise RuntimeError(f"FFmpeg audio extraction failed: {res.stderr.decode()}")
         return output_audio_path
 
-    def analyze_video_audio(self, audio_path: str, video_duration: float = None, length_pref: str = "auto", clip_count: str = "3") -> dict:
+    def analyze_video_audio(self, audio_path: str, video_duration: float = None, length_pref: str = "auto", clip_count: str = "3", caption_language: str = "auto") -> dict:
         """
         Sends audio to Gemini to detect viral clips, generate social copy, and transcribe.
         """
         if not self.api_key or self.api_key.startswith("http"):
-            return self._generate_fallback_clips(video_duration or 60.0, clip_count=clip_count)
+            return self._generate_fallback_clips(video_duration or 60.0, clip_count=clip_count, caption_language=caption_language)
 
         with open(audio_path, "rb") as f:
             audio_bytes = f.read()
@@ -45,13 +45,37 @@ class GeminiClipperClient:
             "auto": "Choose optimal clip duration between 15 and 60 seconds based on natural speech boundaries."
         }.get(length_pref, "Choose optimal clip duration between 15 and 60 seconds.")
 
+        if caption_language == "hinglish":
+            lang_instruction = """
+LANGUAGE & SCRIPT MANDATE:
+- The speech MUST be transcribed strictly in HINGLISH using the Latin/English alphabet (A-Z).
+- Example: "BHAI YEH CONTROLLER SACH MEIN CRAZY HAI"
+- NEVER use Devanagari script (do NOT write हिंदी). All words must be in Latin A-Z letters.
+- Keep English words in English (e.g. "CONTROLLER", "KILLER", "GAMING", "SETUP").
+"""
+        elif caption_language == "english":
+            lang_instruction = """
+LANGUAGE & SCRIPT MANDATE:
+- All subtitle words MUST be in clean ENGLISH. If the audio is in Hindi, translate the spoken meaning faithfully into natural English subtitles matching audio timestamps.
+"""
+        elif caption_language == "native":
+            lang_instruction = """
+LANGUAGE & SCRIPT MANDATE:
+- Transcribe in the original native language script.
+"""
+        else:  # auto
+            lang_instruction = """
+LANGUAGE & SCRIPT MANDATE (AUTO-DETECT):
+- If the speaker speaks Hindi or mixed Hindi-English (Hinglish):
+  CRUCIAL: Transcribe the subtitle words strictly in natural HINGLISH using the Latin/English alphabet (A-Z) (e.g. "BHAI YEH CONTROLLER SACH MEIN CRAZY HAI"). NEVER output Devanagari script for subtitle words because viral YouTube Shorts and Instagram Reels in India always use Romanized Hinglish for maximum readability and retention.
+- If the speaker speaks English: transcribe in clean English.
+- If the speaker speaks another language: transcribe using Latin alphabet transliteration.
+"""
+
         prompt = f"""
 You are the world-class AI engine behind Opus Clip.
 Analyze the speech in this audio track:
-1. Detect the language(s) spoken and transcribe the audio faithfully. Do not invent, summarize, or replace spoken words in the subtitles.
-   - If the speaker uses Hindi, write the subtitle words in natural Hinglish using Latin/Roman letters (for example, "mujhe lagta hai this is important"), keeping commonly spoken English words in English. Do not use Devanagari for subtitle words.
-   - For English or other languages, keep the original spoken language and writing system. Do not translate speech.
-   - Keep each word's spelling natural and consistent, and make word timestamps follow the actual audio closely.
+1. {lang_instruction.strip()}
 2. Identify the {count_str} most engaging, viral, self-contained highlight clips suitable for YouTube Shorts, TikTok, and Instagram Reels.
 3. {length_instructions}
 4. For each clip, calculate:
@@ -147,7 +171,7 @@ Return ONLY raw JSON with no markdown backticks.
         except Exception as e:
             raise ValueError(f"Failed to parse Gemini response: {e}. Raw response: {res_data}")
 
-    def _generate_fallback_clips(self, video_duration: float, clip_count: str = "3") -> dict:
+    def _generate_fallback_clips(self, video_duration: float, clip_count: str = "3", caption_language: str = "auto") -> dict:
         duration = max(video_duration, 30.0)
         c1_start = min(5.0, duration * 0.1)
         c1_end = min(c1_start + 20.0, duration)
@@ -155,42 +179,69 @@ Return ONLY raw JSON with no markdown backticks.
         c2_start = min(c1_end + 3.0, duration * 0.6)
         c2_end = min(c2_start + 22.0, duration)
 
+        if caption_language in ["hinglish", "auto"]:
+            t1 = "Yeh Controller Sach Mein DualSense Killer Hai? 🎮"
+            h1 = "Bhai agar tum yeh controller lete ho toh tumhare paise bachenge."
+            w1 = "Bhai agar tum yeh controller lete ho toh tumhare paise bachenge sach mein crazy trick aur bawal feature hai"
+            t2 = "Yeh Galti Kabhi Mat Karna Gaming Mein! ❌"
+            h2 = "Yeh sabse badi mistake hai jo gamers karte hain."
+            w2 = "Yeh sabse badi galti hai jo gamers karte hain apne setup mein dhyan se dekho"
+            yt1 = "Kya yeh sach mein DualSense Killer hai? 🎮 #Shorts #Gaming #TechBurner #Viral"
+            tt1 = "Bhai yeh feature dekh kar dimaag ghum gaya 🤯 #fyp #viral #techhacks"
+            ig1 = "Kya aap yeh controller buy karoge? Comment karo! 👇 #reels #gamingcommunity"
+            yt2 = "Yeh galti bilkul mat karna! 🛑 #Shorts #TechTips #GamingGyan"
+            tt2 = "Wait till the end... dhyan se sunna ⚡ #fyp #trending #gadgets"
+            ig2 = "Share karo apne gamer dost ke sath! 👇 #reels #setup"
+        else:
+            t1 = "The Secret Formula to Success 🚀"
+            h1 = "Most people completely overlook this one crucial rule."
+            w1 = "Most people completely overlook this one crucial secret rule for exponential money success and growth"
+            t2 = "Why Everything You Knew Is Changing 💡"
+            h2 = "Here is what happens when you take the leap."
+            w2 = "Here is what happens when you take the leap into the fire with absolute conviction and power"
+            yt1 = "The Secret Formula to Success 🚀 #Shorts #Success #Growth #Mindset"
+            tt1 = "This 1 rule changed everything for me 🤯 #fyp #foryou #viral #growthtips"
+            ig1 = "Are you making this mistake? Save this for later! 💡 #reels #motivation #success"
+            yt2 = "Why Everything You Knew Is Changing Today 💡 #Shorts #Future #Innovation"
+            tt2 = "Wait till the end to see why this matters ⚡ #fyp #trending #tech #ideas"
+            ig2 = "Share this with someone who needs to hear it! 👇 #reels #inspiration"
+
         all_clips = [
             {
                 "id": 1,
-                "title": "The Secret Formula to Success 🚀",
-                "hook": "Most people completely overlook this one crucial rule.",
+                "title": t1,
+                "hook": h1,
                 "start_time": round(c1_start, 2),
                 "end_time": round(c1_end, 2),
                 "virality_score": 97,
                 "hook_score": 98,
                 "flow_score": 94,
                 "engagement_score": 96,
-                "reason": "Strong pattern-interrupt hook and high viewer curiosity gap.",
+                "reason": "High curiosity pattern-interrupt hook and relatable conversational delivery.",
                 "social_copy": {
-                    "youtube": "The Secret Formula to Success (Never Seen Before) 🚀 #Shorts #Success #Growth #Mindset",
-                    "tiktok": "This 1 rule changed everything for me 🤯 #fyp #foryou #viral #growthtips",
-                    "instagram": "Are you making this mistake? Save this for later! 💡 #reels #motivation #success"
+                    "youtube": yt1,
+                    "tiktok": tt1,
+                    "instagram": ig1
                 },
-                "words": self._generate_simulated_words(c1_start, c1_end, "Most people completely overlook this one crucial secret rule for exponential money success and growth")
+                "words": self._generate_simulated_words(c1_start, c1_end, w1)
             },
             {
                 "id": 2,
-                "title": "Why Everything You Knew Is Changing 💡",
-                "hook": "Here is what happens when you take the leap.",
+                "title": t2,
+                "hook": h2,
                 "start_time": round(c2_start, 2),
                 "end_time": round(c2_end, 2),
                 "virality_score": 91,
                 "hook_score": 89,
                 "flow_score": 92,
                 "engagement_score": 90,
-                "reason": "Clear narrative arc with actionable takeaway for the audience.",
+                "reason": "Warning hook format triggers high viewer retention and saves.",
                 "social_copy": {
-                    "youtube": "Why Everything You Knew Is Changing Today 💡 #Shorts #Future #Innovation",
-                    "tiktok": "Wait till the end to see why this matters ⚡ #fyp #trending #tech #ideas",
-                    "instagram": "Share this with someone who needs to hear it! 👇 #reels #inspiration"
+                    "youtube": yt2,
+                    "tiktok": tt2,
+                    "instagram": ig2
                 },
-                "words": self._generate_simulated_words(c2_start, c2_end, "Here is what happens when you take the leap into the fire with absolute conviction and power")
+                "words": self._generate_simulated_words(c2_start, c2_end, w2)
             }
         ]
 

@@ -2,6 +2,7 @@ import os
 import re
 
 EMOJI_KEYWORDS = {
+    # English
     "MONEY": "💰", "CASH": "💵", "RICH": "🤑", "PROFIT": "📈", "DOLLAR": "💵",
     "FIRE": "🔥", "LIT": "🔥", "HOT": "🔥",
     "ROCKET": "🚀", "GROWTH": "🚀", "SUCCESS": "🏆", "WIN": "🏆", "WINNER": "🏆",
@@ -12,7 +13,22 @@ EMOJI_KEYWORDS = {
     "LOVE": "❤️", "HEART": "❤️", "PASSION": "❤️",
     "WARNING": "⚠️", "DANGER": "🚨", "MISTAKE": "❌", "STOP": "🛑",
     "QUESTION": "❓", "WHY": "❓", "HOW": "❓",
-    "STRONG": "💪", "POWER": "⚡", "ENERGY": "⚡"
+    "STRONG": "💪", "POWER": "⚡", "ENERGY": "⚡",
+    "KILLER": "💀", "DEAD": "💀", "GAME": "🎮", "CONTROLLER": "🎮",
+
+    # Hinglish & Hindi Keywords
+    "PAISA": "💰", "PAISE": "💰", "AMEER": "🤑", "DAULAT": "💵",
+    "AAG": "🔥", "DHAMAKA": "💥", "BOMB": "💣",
+    "JEET": "🏆", "JEETA": "🏆", "KAMIYAB": "🚀", "NUMBER1": "🥇",
+    "BAAP": "👑", "KING": "👑", "RAJA": "👑",
+    "RAAZ": "🤫", "SECRET": "🤫", "CHHUPA": "🤫",
+    "DIMAG": "🧠", "SOCH": "💡", "IDEA": "💡", "SAMJH": "💡",
+    "PAGAL": "🤯", "GAJAB": "🤯", "BAWAL": "💥", "SHANDAR": "✨",
+    "WAQT": "⏳", "SAMAY": "⏰", "ROKO": "🛑",
+    "DIL": "❤️", "PYAR": "❤️", "JAAN": "❤️",
+    "GALTI": "❌", "KHATRA": "⚠️", "KHARAB": "❌", "MAT": "🛑", "DHOKA": "⚠️",
+    "KYU": "❓", "KYA": "❓", "KAISE": "❓", "KAB": "❓",
+    "TAQAT": "💪", "DUM": "💪", "MAZA": "🥳", "KHATARNAK": "⚡"
 }
 
 STYLE_PRESETS = {
@@ -81,13 +97,11 @@ class SubtitleGenerator:
         for w in words:
             w_start = w.get("start", 0.0) - clip_start
             w_end = w.get("end", 0.0) - clip_start
-            raw_word = w.get("word", "").strip()
+            raw_word = w.get("word", "").strip().upper()
             if not raw_word:
                 continue
 
-            # Keep the transcript's casing and script (especially useful for Hinglish),
-            # while still matching English emoji keywords case-insensitively.
-            clean_word = re.sub(r'[^A-Z0-9]', '', raw_word.upper())
+            clean_word = re.sub(r'[^A-Z0-9]', '', raw_word)
             emoji_tag = ""
             if enable_emojis and clean_word in EMOJI_KEYWORDS:
                 emoji_tag = f" {EMOJI_KEYWORDS[clean_word]}"

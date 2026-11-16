@@ -141,6 +141,7 @@ def process():
     enable_emojis = data.get("enable_emojis", True)
     length_pref = data.get("length_pref", "auto")
     clip_count = data.get("clip_count", "3")
+    caption_language = data.get("caption_language", "auto")
 
     if not video_id:
         return jsonify({"error": "Missing video_id"}), 400
@@ -175,6 +176,7 @@ def process():
                 enable_emojis=enable_emojis,
                 length_pref=length_pref,
                 clip_count=clip_count,
+                caption_language=caption_language,
                 progress_callback=update_progress
             )
             tasks[task_id]["status"] = "completed"

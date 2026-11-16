@@ -181,6 +181,7 @@ generateBtn.addEventListener('click', async () => {
   const subtitlePreset = document.getElementById('subtitlePreset').value;
   const lengthPref = document.getElementById('lengthPref').value;
   const clipCount = document.getElementById('clipCount').value;
+  const captionLanguage = document.getElementById('captionLanguage')?.value || 'auto';
   const enableEmojis = document.getElementById('enableEmojis').checked;
 
   try {
@@ -193,7 +194,8 @@ generateBtn.addEventListener('click', async () => {
         subtitle_preset: subtitlePreset,
         enable_emojis: enableEmojis,
         length_pref: lengthPref,
-        clip_count: clipCount
+        clip_count: clipCount,
+        caption_language: captionLanguage
       })
     });
     const data = await res.json();
