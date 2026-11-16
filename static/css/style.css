@@ -219,6 +219,43 @@ body {
   border-color: var(--primary);
 }
 
+.live-snippet-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  padding: 8px 14px;
+  border-radius: 8px;
+  margin-top: -10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.live-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ef4444;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.live-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.live-duration-select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
 /* Drop Zone */
 .drop-zone {
   border: 2px dashed var(--border);

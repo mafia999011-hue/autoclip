@@ -42,14 +42,16 @@ fetchYtBtn.addEventListener('click', async () => {
     return;
   }
 
+  const liveDuration = document.getElementById('liveDuration')?.value || 180;
+
   fetchYtBtn.disabled = true;
-  ytStatusDisplay.textContent = 'Downloading video stream from link (this may take a moment)...';
+  ytStatusDisplay.textContent = 'Connecting & downloading video/live stream snippet (this may take a moment)...';
 
   try {
     const res = await fetch('/api/fetch_url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
+      body: JSON.stringify({ url, live_duration: liveDuration })
     });
     const data = await res.json();
     if (data.video_id) {

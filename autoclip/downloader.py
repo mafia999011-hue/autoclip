@@ -2,6 +2,7 @@ import os
 import re
 import uuid
 import yt_dlp
+from .live_recorder import LiveStreamRecorder
 
 def detect_platform(url: str) -> str:
     url_lower = url.lower()
@@ -17,12 +18,24 @@ def detect_platform(url: str) -> str:
         return "Kick"
     return "Web Video"
 
-def download_online_video(url: str, output_dir: str) -> dict:
+def download_online_video(url: str, output_dir: str, live_duration: int = 180) -> dict:
     """
-    Downloads video from YouTube, Twitch (Clips / VODs), and other supported sites using yt-dlp.
+    Downloads video from YouTube, Twitch, etc.
+    If the link is an ongoing live stream, automatically captures a live snippet!
     """
     os.makedirs(output_dir, exist_ok=True)
     platform = detect_platform(url)
+
+    # 1. First probe if this URL is an active live stream
+    live_info = LiveStreamRecorder.inspect_url(url)
+    if live_info.get("is_live"):
+        return LiveStreamRecorder.record_live_snippet(
+            url=url,
+            output_dir=output_dir,
+            duration_seconds=live_duration
+        )
+
+    # 2. Standard video or clip download
     unique_prefix = uuid.uuid4().hex[:8]
     out_template = os.path.join(output_dir, f"{unique_prefix}_%(title).50s.%(ext)s")
     

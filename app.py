@@ -97,10 +97,11 @@ def config():
 def fetch_online_video():
     data = request.json or {}
     url = data.get("url", "").strip()
+    live_duration = int(data.get("live_duration", 180))
     if not url:
         return jsonify({"error": "No video link provided"}), 400
     try:
-        res = download_online_video(url, app.config["UPLOAD_FOLDER"])
+        res = download_online_video(url, app.config["UPLOAD_FOLDER"], live_duration=live_duration)
         return jsonify({
             "status": "ready",
             "video_id": res["video_id"],
