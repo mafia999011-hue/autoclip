@@ -98,6 +98,7 @@ function renderClips(clips) {
           <span class="score-chip">Flow: <strong>${clip.flow_score}%</strong></span>
           <span class="score-chip">Engagement: <strong>${clip.engagement_score || 92}%</strong></span>
           <span class="score-chip">⏱ <strong>${clip.duration}s</strong></span>
+          <span class="score-chip">📺 <strong>${clip.quality || '1080p'}</strong></span>
         </div>
         ${clip.hook ? `<div class="clip-hook">"${clip.hook}"</div>` : ''}
         ${clip.reason ? `<div class="clip-reason">${clip.reason}</div>` : ''}

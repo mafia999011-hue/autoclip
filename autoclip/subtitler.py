@@ -86,14 +86,29 @@ class SubtitleGenerator:
         output_ass_path: str,
         preset_name: str = "hormozi",
         enable_emojis: bool = True,
-        words_per_group: int = 2
+        words_per_group: int = 2,
+        video_quality: str = "1080p"
     ) -> str:
         preset = STYLE_PRESETS.get(preset_name, STYLE_PRESETS["hormozi"])
         highlight_color = preset["highlight"]
         base_color = preset["base"]
         outline_color = preset["outline"]
-        font_size = preset["font_size"]
-        outline_w = preset["outline_w"]
+
+        if video_quality == "720p":
+            res_x, res_y = 720, 1280
+            font_size = int(preset["font_size"] * (720 / 1080))
+            outline_w = max(4, int(preset["outline_w"] * (720 / 1080)))
+            margin_v = int(480 * (1280 / 1920))
+        elif video_quality == "1440p":
+            res_x, res_y = 1440, 2560
+            font_size = int(preset["font_size"] * (1440 / 1080))
+            outline_w = int(preset["outline_w"] * (1440 / 1080))
+            margin_v = int(480 * (2560 / 1920))
+        else:  # 1080p
+            res_x, res_y = 1080, 1920
+            font_size = preset["font_size"]
+            outline_w = preset["outline_w"]
+            margin_v = 480
 
         valid_words = []
         for w in words:
@@ -126,19 +141,18 @@ class SubtitleGenerator:
         for i in range(0, len(valid_words), words_per_group):
             chunks.append(valid_words[i:i + words_per_group])
 
-        # Modern high-impact vertical subtitle styling
-        # MarginV = 480 places subtitles in the optimal lower-third zone above platform UI overlays
+        # Modern high-impact vertical subtitle styling matching target resolution
         ass_content = [
             "[Script Info]",
             "ScriptType: v4.00+",
-            "PlayResX: 1080",
-            "PlayResY: 1920",
+            f"PlayResX: {res_x}",
+            f"PlayResY: {res_y}",
             "WrapStyle: 0",
             "ScaledBorderAndShadow: yes",
             "",
             "[V4+ Styles]",
             "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
-            f"Style: Default,Arial,{font_size},{base_color},&H000000FF&,{outline_color},&H80000000&,-1,0,0,0,100,100,2,0,1,{outline_w},4,2,60,60,480,1",
+            f"Style: Default,Arial,{font_size},{base_color},&H000000FF&,{outline_color},&H80000000&,-1,0,0,0,100,100,2,0,1,{outline_w},4,2,60,60,{margin_v},1",
             "",
             "[Events]",
             "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"

@@ -21,6 +21,7 @@ class AutoClipPipeline:
         length_pref: str = "auto",
         clip_count: str = "3",
         caption_language: str = "auto",
+        video_quality: str = "1080p",
         progress_callback = None
     ) -> dict:
         def update_progress(stage: str, percent: int):
@@ -85,10 +86,11 @@ class AutoClipPipeline:
                 output_ass_path=ass_path,
                 preset_name=subtitle_preset,
                 enable_emojis=enable_emojis,
-                words_per_group=2
+                words_per_group=2,
+                video_quality=video_quality
             )
 
-            update_progress(f"Rendering Clip {c_id}/{total_clips}: {title}", progress_pct)
+            update_progress(f"Rendering Clip {c_id}/{total_clips}: {title} ({video_quality})", progress_pct)
 
             VideoRenderer.render_clip(
                 video_path=video_path,
@@ -96,7 +98,8 @@ class AutoClipPipeline:
                 end_time=safe_end,
                 output_path=clip_output_path,
                 reframe_mode=reframe_mode,
-                ass_path=ass_path
+                ass_path=ass_path,
+                video_quality=video_quality
             )
 
             rendered_clips.append({
@@ -106,6 +109,7 @@ class AutoClipPipeline:
                 "start_time": safe_start,
                 "end_time": safe_end,
                 "duration": round(safe_end - safe_start, 1),
+                "quality": video_quality,
                 "virality_score": clip.get("virality_score", 90),
                 "hook_score": clip.get("hook_score", 88),
                 "flow_score": clip.get("flow_score", 92),

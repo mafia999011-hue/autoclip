@@ -182,6 +182,7 @@ generateBtn.addEventListener('click', async () => {
   const lengthPref = document.getElementById('lengthPref').value;
   const clipCount = document.getElementById('clipCount').value;
   const captionLanguage = document.getElementById('captionLanguage')?.value || 'auto';
+  const videoQuality = document.getElementById('videoQuality')?.value || '1080p';
   const enableEmojis = document.getElementById('enableEmojis').checked;
 
   try {
@@ -195,7 +196,8 @@ generateBtn.addEventListener('click', async () => {
         enable_emojis: enableEmojis,
         length_pref: lengthPref,
         clip_count: clipCount,
-        caption_language: captionLanguage
+        caption_language: captionLanguage,
+        video_quality: videoQuality
       })
     });
     const data = await res.json();
@@ -271,6 +273,7 @@ function renderResults(result) {
           <span class="score-chip">Flow: <strong>${clip.flow_score}%</strong></span>
           <span class="score-chip">Engagement: <strong>${clip.engagement_score || 92}%</strong></span>
           <span class="score-chip">⏱ <strong>${clip.duration}s</strong></span>
+          <span class="score-chip">📺 <strong>${clip.quality || '1080p'}</strong></span>
         </div>
         ${clip.hook ? `<div class="clip-hook">"${clip.hook}"</div>` : ''}
         ${clip.reason ? `<div class="clip-reason">${clip.reason}</div>` : ''}

@@ -2,6 +2,30 @@ import os
 import subprocess
 from .reframer import VideoReframer
 
+QUALITY_PROFILES = {
+    "720p": {
+        "width": 720,
+        "height": 1280,
+        "crf": "23",
+        "preset": "ultrafast",
+        "audio_bitrate": "128k"
+    },
+    "1080p": {
+        "width": 1080,
+        "height": 1920,
+        "crf": "20",
+        "preset": "veryfast",
+        "audio_bitrate": "192k"
+    },
+    "1440p": {
+        "width": 1440,
+        "height": 2560,
+        "crf": "18",
+        "preset": "veryfast",
+        "audio_bitrate": "256k"
+    }
+}
+
 class VideoRenderer:
     @staticmethod
     def check_audio_stream(video_path: str) -> bool:
@@ -24,32 +48,40 @@ class VideoRenderer:
         end_time: float,
         output_path: str,
         reframe_mode: str = "blurred_background",
-        ass_path: str = None
+        ass_path: str = None,
+        video_quality: str = "1080p"
     ) -> str:
         """
-        Extracts, reframes (to 9:16), sharpens foreground, smooths audio transitions,
-        and burns animated karaoke subtitles.
+        Extracts, reframes (to 9:16 vertical), sharpens foreground, smooths audio transitions,
+        and renders video at requested quality (720p, 1080p, or 1440p).
         """
         duration = max(0.5, end_time - start_time)
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
         has_audio = cls.check_audio_stream(video_path)
 
+        profile = QUALITY_PROFILES.get(video_quality, QUALITY_PROFILES["1080p"])
+        w = profile["width"]
+        h = profile["height"]
+        crf = profile["crf"]
+        preset = profile["preset"]
+        audio_br = profile["audio_bitrate"]
+
         filters = []
         if reframe_mode == "center_crop":
             filters.append(
-                "[0:v]crop=ih*(9/16):ih:(iw-ow)/2:0,"
-                "scale=1080:1920:flags=bicubic,"
-                "unsharp=5:5:0.6:5:5:0.0[v_base]"
+                f"[0:v]crop=ih*(9/16):ih:(iw-ow)/2:0,"
+                f"scale={w}:{h}:flags=bicubic,"
+                f"unsharp=5:5:0.6:5:5:0.0[v_base]"
             )
         else:
             # Cinematic Blurred Background:
             # - Background is scaled, cropped, heavily blurred, darkened (-18%), and given punchy contrast
             # - Foreground is scaled and sharpened with unsharp filter for crisp viewing on mobile
             filters.append(
-                "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-                "crop=1080:1920,boxblur=30:5,eq=brightness=-0.18:contrast=1.15[bg];"
-                "[0:v]scale=1080:-2,unsharp=5:5:0.6:5:5:0.0[fg];"
-                "[bg][fg]overlay=0:(1920-overlay_h)/2[v_base]"
+                f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,"
+                f"crop={w}:{h},boxblur=30:5,eq=brightness=-0.18:contrast=1.15[bg];"
+                f"[0:v]scale={w}:-2,unsharp=5:5:0.6:5:5:0.0[fg];"
+                f"[bg][fg]overlay=0:({h}-overlay_h)/2[v_base]"
             )
 
         last_v_stream = "[v_base]"
@@ -82,12 +114,12 @@ class VideoRenderer:
         ]
 
         if last_a_stream:
-            cmd.extend(["-map", last_a_stream, "-c:a", "aac", "-b:a", "128k"])
+            cmd.extend(["-map", last_a_stream, "-c:a", "aac", "-b:a", audio_br])
 
         cmd.extend([
             "-c:v", "libx264",
-            "-preset", "ultrafast",  # Fast rendering on mobile/ARM64
-            "-crf", "22",
+            "-preset", preset,
+            "-crf", crf,
             "-pix_fmt", "yuv420p",
             output_path
         ])

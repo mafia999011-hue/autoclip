@@ -41,7 +41,7 @@ def download_online_video(url: str, output_dir: str, live_duration: int = 180) -
     out_template = os.path.join(output_dir, f"{unique_prefix}_%(title).50s.%(ext)s")
     
     ydl_opts = {
-        'format': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/best',
+        'format': 'bestvideo[height<=1440]+bestaudio/best[height<=1440]/best',
         'outtmpl': out_template,
         'merge_output_format': 'mp4',
         'noplaylist': True,
