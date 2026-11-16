@@ -81,11 +81,13 @@ class SubtitleGenerator:
         for w in words:
             w_start = w.get("start", 0.0) - clip_start
             w_end = w.get("end", 0.0) - clip_start
-            raw_word = w.get("word", "").strip().upper()
+            raw_word = w.get("word", "").strip()
             if not raw_word:
                 continue
 
-            clean_word = re.sub(r'[^A-Z0-9]', '', raw_word)
+            # Keep the transcript's casing and script (especially useful for Hinglish),
+            # while still matching English emoji keywords case-insensitively.
+            clean_word = re.sub(r'[^A-Z0-9]', '', raw_word.upper())
             emoji_tag = ""
             if enable_emojis and clean_word in EMOJI_KEYWORDS:
                 emoji_tag = f" {EMOJI_KEYWORDS[clean_word]}"

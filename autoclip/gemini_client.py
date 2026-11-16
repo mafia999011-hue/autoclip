@@ -48,9 +48,13 @@ class GeminiClipperClient:
         prompt = f"""
 You are the world-class AI engine behind Opus Clip.
 Analyze the speech in this audio track:
-1. Identify the {count_str} most engaging, viral, self-contained highlight clips suitable for YouTube Shorts, TikTok, and Instagram Reels.
-2. {length_instructions}
-3. For each clip, calculate:
+1. Detect the language(s) spoken and transcribe the audio faithfully. Do not invent, summarize, or replace spoken words in the subtitles.
+   - If the speaker uses Hindi, write the subtitle words in natural Hinglish using Latin/Roman letters (for example, "mujhe lagta hai this is important"), keeping commonly spoken English words in English. Do not use Devanagari for subtitle words.
+   - For English or other languages, keep the original spoken language and writing system. Do not translate speech.
+   - Keep each word's spelling natural and consistent, and make word timestamps follow the actual audio closely.
+2. Identify the {count_str} most engaging, viral, self-contained highlight clips suitable for YouTube Shorts, TikTok, and Instagram Reels.
+3. {length_instructions}
+4. For each clip, calculate:
    - title: High CTR, click-worthy title.
    - hook: The opening line that grabs attention in the first 3 seconds.
    - start_time: Clip start time in seconds (float).
@@ -64,7 +68,7 @@ Analyze the speech in this audio track:
      - youtube: Title with 3-4 trending hashtags.
      - tiktok: Punchy 1-sentence caption + 5 viral hashtags.
      - instagram: Engaging caption with question hook + tags.
-   - words: Word-by-word timestamps:
+   - words: Faithful, language-appropriate word-by-word subtitle transcript with timestamps:
      [{{"word": "string", "start": float, "end": float}}]
 
 Output strictly valid JSON with this exact structure:
