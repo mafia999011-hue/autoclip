@@ -60,14 +60,20 @@ class AutoClipPipeline:
             ass_path = os.path.join(self.output_dir, f"{clip_base}.ass")
             clip_output_path = os.path.join(self.output_dir, f"{clip_base}.mp4")
 
-            # Generate ASS subtitles with Opus auto-emojis and preset style
+            # Subtle acoustic safety padding: 0.15s pre-roll and 0.25s post-roll
+            # to preserve starting/ending consonants and prevent jarring cuts
+            safe_start = max(0.0, start_t - 0.15)
+            safe_end = min(video_duration, end_t + 0.25)
+
+            # Generate ASS subtitles with Opus auto-emojis, active bounce, and punchy 2-word groups
             SubtitleGenerator.generate_ass(
                 words=words,
-                clip_start=start_t,
-                clip_end=end_t,
+                clip_start=safe_start,
+                clip_end=safe_end,
                 output_ass_path=ass_path,
                 preset_name=subtitle_preset,
-                enable_emojis=enable_emojis
+                enable_emojis=enable_emojis,
+                words_per_group=2
             )
 
             progress_pct = 50 + int((idx + 1) / total_clips * 45)
@@ -75,8 +81,8 @@ class AutoClipPipeline:
 
             VideoRenderer.render_clip(
                 video_path=video_path,
-                start_time=start_t,
-                end_time=end_t,
+                start_time=safe_start,
+                end_time=safe_end,
                 output_path=clip_output_path,
                 reframe_mode=reframe_mode,
                 ass_path=ass_path
@@ -86,9 +92,9 @@ class AutoClipPipeline:
                 "id": c_id,
                 "title": title,
                 "hook": clip.get("hook", ""),
-                "start_time": start_t,
-                "end_time": end_t,
-                "duration": round(end_t - start_t, 1),
+                "start_time": safe_start,
+                "end_time": safe_end,
+                "duration": round(safe_end - safe_start, 1),
                 "virality_score": clip.get("virality_score", 90),
                 "hook_score": clip.get("hook_score", 88),
                 "flow_score": clip.get("flow_score", 92),

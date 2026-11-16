@@ -89,13 +89,22 @@ LANGUAGE & SCRIPT MANDATE (AUTO-DETECT):
 """
 
         prompt = f"""
-You are the world-class AI engine behind Opus Clip.
-Analyze the speech in this audio track:
+You are the world-class AI clipping director behind Opus Clip, Submagic, and CapCut.
+Analyze the speech and audio track to find VIRAL, HIGH-RETENTION GOLD:
+
 1. {lang_instruction.strip()}
-2. Identify the {count_str} most engaging, viral, self-contained highlight clips suitable for YouTube Shorts, TikTok, and Instagram Reels.
-3. {length_instructions}
-4. For each clip, calculate:
-   - title: High CTR, click-worthy title.
+
+2. VIRAL SELECTION CRITERIA:
+   - Identify the {count_str} highest performing, most addictive, self-contained highlight clips suitable for YouTube Shorts, TikTok, and Instagram Reels.
+   - {length_instructions}
+   - HOOK PURITY: The first 3 seconds MUST immediately grab attention (shocking claim, surprising revelation, explosive question, or high-energy moment).
+   - CLEAN BOUNDARIES:
+     * `start_time` MUST be the EXACT natural beginning of an energetic sentence or thought. NEVER start mid-sentence or on filler words ("um", "uh", "so", "like").
+     * `end_time` MUST be the EXACT natural conclusion of a thought, punchline, or complete sentence. NEVER cut off a speaker mid-sentence.
+   - STORY ARC: Each clip must feel complete and satisfying: Hook -> Core Value / Twist -> Payoff / Punchline.
+
+3. FOR EACH CLIP, OUTPUT:
+   - title: High CTR, click-worthy title (max 7 words).
    - hook: The opening line that grabs attention in the first 3 seconds.
    - start_time: Clip start time in seconds (float).
    - end_time: Clip end time in seconds (float).
@@ -108,8 +117,9 @@ Analyze the speech in this audio track:
      - youtube: Title with 3-4 trending hashtags.
      - tiktok: Punchy 1-sentence caption + 5 viral hashtags.
      - instagram: Engaging caption with question hook + tags.
-   - words: Word-by-word timestamps:
-     [{{"word": "string", "start": float, "end": float}}]
+   - words: Precise word-by-word timestamps covering the clip:
+     [{{"word": "STRING", "start": float, "end": float}}]
+     (Words should be uppercase or title-case, with tight start and end times matching actual speech).
 
 Output strictly valid JSON with this exact structure:
 {{
@@ -132,8 +142,8 @@ Output strictly valid JSON with this exact structure:
         "instagram": "Do you agree with this? Drop your thoughts below 👇 #reels #explore #growth"
       }},
       "words": [
-        {{"word": "This", "start": 10.5, "end": 10.8}},
-        {{"word": "is", "start": 10.9, "end": 11.1}}
+        {{"word": "THIS", "start": 10.5, "end": 10.8}},
+        {{"word": "IS", "start": 10.9, "end": 11.1}}
       ]
     }}
   ]
