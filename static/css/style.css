@@ -633,6 +633,113 @@ body {
   background: var(--primary-hover);
 }
 
+/* Enhanced Virality & Hook UI Components */
+.viral-badge.viral-gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+.viral-badge.viral-green {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+}
+
+.viral-badge.viral-blue {
+  background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.35);
+}
+
+.hook-type-pill {
+  display: inline-block;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score-chip.risk-very-low, .score-chip.risk-low {
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.hook-headline-preview {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px dashed rgba(245, 158, 11, 0.4);
+  color: #fde68a;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hook-badge-tag {
+  background: #f59e0b;
+  color: #1e1e1e;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.virality-details {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.virality-details summary {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s, background 0.2s;
+}
+
+.virality-details summary:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.virality-details-content {
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
+.virality-details-content p {
+  margin-bottom: 8px;
+}
+
+.virality-details-content p:last-child {
+  margin-bottom: 0;
+}
+
+.viral-tip {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border-left: 3px solid #38bdf8;
+}
+
 /* History Specific Styles */
 .history-title-row {
   display: flex;

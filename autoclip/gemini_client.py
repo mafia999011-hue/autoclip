@@ -122,13 +122,23 @@ Analyze this audio track to identify VIRAL, HIGH-RETENTION GOLD:
 3. FOR EACH CLIP, OUTPUT:
    - title: High CTR, click-worthy title (max 7 words).
    - hook: The opening line that grabs attention in the first 3 seconds.
+   - hook_headline: Ultra-punchy 3-5 word uppercase header banner with an emoji (e.g. "WAIT TILL THE END! 🤯", "DON'T MAKE THIS MISTAKE! 🛑", "DUALSENSE KILLER? 🎮").
+   - hook_type: Choose the best matching psychology category:
+     * "🚨 Warning & Mistake"
+     * "🤫 Curiosity Gap & Secret"
+     * "💥 Contrarian & Shock"
+     * "🏆 Challenge & High Stakes"
+     * "⚡ Value Bomb & Hack"
    - start_time: Clip start time in seconds (float).
    - end_time: Clip end time in seconds (float).
-   - virality_score: Overall virality score (60 to 99).
-   - hook_score: Hook strength score (60 to 99).
-   - flow_score: Story/flow coherence score (60 to 99).
-   - engagement_score: Audience resonance score (60 to 99).
-   - reason: Explain why this clip retains viewers.
+   - virality_score: Overall virality score (70 to 99).
+   - hook_score: Hook stop-rate score (70 to 99).
+   - flow_score: Story momentum score (70 to 99).
+   - engagement_score: Comment & share trigger score (70 to 99).
+   - curiosity_gap: Rating string (e.g. "9.8/10", "9.5/10").
+   - drop_off_risk: "Very Low", "Low", or "Moderate".
+   - reason: Detailed psychological retention explanation (why viewers won't swipe away).
+   - viral_action_tip: Practical YouTube Shorts/TikTok algorithm growth tip (e.g. what comment to pin, loop trick, or music suggestion).
    - social_copy: Platform tailored captions:
      - youtube: Title with 3-4 trending hashtags.
      - tiktok: Punchy 1-sentence caption + 5 viral hashtags.
@@ -142,13 +152,18 @@ Output strictly valid JSON with this exact structure:
       "id": 1,
       "title": "Title here",
       "hook": "Hook sentence",
+      "hook_headline": "HOOK BANNER HERE ⚡",
+      "hook_type": "🤫 Curiosity Gap & Secret",
       "start_time": 10.5,
       "end_time": 35.0,
       "virality_score": 96,
       "hook_score": 98,
       "flow_score": 94,
       "engagement_score": 95,
+      "curiosity_gap": "9.8/10",
+      "drop_off_risk": "Very Low",
       "reason": "Detailed viral retention explanation",
+      "viral_action_tip": "Pin a comment asking viewer opinion to maximize algorithmic comment velocity.",
       "social_copy": {{
         "youtube": "Why this changes everything! #Shorts #Viral #Mindset",
         "tiktok": "Wait until the end... you won't believe this 🤯 #fyp #foryou #viral #trending",
@@ -367,13 +382,18 @@ Return ONLY valid raw JSON with no markdown formatting.
                 "id": 1,
                 "title": "Highlight Moment #1 🚀",
                 "hook": "Wait until you see what happens next.",
+                "hook_headline": "WAIT TILL THE END! 🤯",
+                "hook_type": "🤫 Curiosity Gap & Secret",
                 "start_time": round(c1_start, 2),
                 "end_time": round(c1_end, 2),
-                "virality_score": 95,
-                "hook_score": 96,
-                "flow_score": 93,
-                "engagement_score": 94,
-                "reason": "Strong visual activity and engaging delivery.",
+                "virality_score": 96,
+                "hook_score": 97,
+                "flow_score": 94,
+                "engagement_score": 95,
+                "curiosity_gap": "9.8/10",
+                "drop_off_risk": "Very Low",
+                "reason": "High visual motion and strong curiosity gap in opening 3 seconds.",
+                "viral_action_tip": "Pin a comment asking viewers their opinion to boost algorithmic comment velocity.",
                 "social_copy": {
                     "youtube": "You won't believe this! #Shorts #Viral #Trending",
                     "tiktok": "Wait until the end... 🤯 #fyp #foryou #viral",
@@ -384,13 +404,18 @@ Return ONLY valid raw JSON with no markdown formatting.
                 "id": 2,
                 "title": "Highlight Moment #2 💡",
                 "hook": "Here is the most important part.",
+                "hook_headline": "DON'T MISS THIS! ⚡",
+                "hook_type": "⚡ Value Bomb & Hack",
                 "start_time": round(c2_start, 2),
                 "end_time": round(c2_end, 2),
                 "virality_score": 91,
-                "hook_score": 89,
-                "flow_score": 92,
-                "engagement_score": 90,
-                "reason": "High retention sequence.",
+                "hook_score": 92,
+                "flow_score": 90,
+                "engagement_score": 91,
+                "curiosity_gap": "9.4/10",
+                "drop_off_risk": "Low",
+                "reason": "High retention sequence with actionable takeaway.",
+                "viral_action_tip": "Add a fast loop cut so the video replays seamlessly.",
                 "social_copy": {
                     "youtube": "Did you know this? 💡 #Shorts #Knowledge",
                     "tiktok": "Watch till the end ⚡ #fyp #trending",

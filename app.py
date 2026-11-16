@@ -143,6 +143,7 @@ def process():
     clip_count = data.get("clip_count", "3")
     caption_language = data.get("caption_language", "auto")
     video_quality = data.get("video_quality", "1080p")
+    show_hook_header = data.get("show_hook_header", True)
 
     if not video_id:
         return jsonify({"error": "Missing video_id"}), 400
@@ -179,6 +180,7 @@ def process():
                 clip_count=clip_count,
                 caption_language=caption_language,
                 video_quality=video_quality,
+                show_hook_header=show_hook_header,
                 progress_callback=update_progress
             )
             tasks[task_id]["status"] = "completed"

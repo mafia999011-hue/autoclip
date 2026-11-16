@@ -22,6 +22,7 @@ class AutoClipPipeline:
         clip_count: str = "3",
         caption_language: str = "auto",
         video_quality: str = "1080p",
+        show_hook_header: bool = True,
         progress_callback = None
     ) -> dict:
         def update_progress(stage: str, percent: int):
@@ -77,7 +78,9 @@ class AutoClipPipeline:
                 caption_language=caption_language
             )
 
-            # Generate ASS subtitles with Opus auto-emojis, active bounce, and punchy 2-word groups
+            hook_headline = clip.get("hook_headline") or title
+
+            # Generate ASS subtitles with Opus auto-emojis, active bounce, top hook banner, and punchy 2-word groups
             # precise_words are already relative to safe_start (starting from 0.0s)
             SubtitleGenerator.generate_ass(
                 words=precise_words,
@@ -87,7 +90,9 @@ class AutoClipPipeline:
                 preset_name=subtitle_preset,
                 enable_emojis=enable_emojis,
                 words_per_group=2,
-                video_quality=video_quality
+                video_quality=video_quality,
+                hook_headline=hook_headline,
+                show_hook_header=show_hook_header
             )
 
             update_progress(f"Rendering Clip {c_id}/{total_clips}: {title} ({video_quality})", progress_pct)
@@ -106,11 +111,20 @@ class AutoClipPipeline:
                 "id": c_id,
                 "title": title,
                 "hook": clip.get("hook", ""),
+                "hook_headline": hook_headline,
+                "hook_type": clip.get("hook_type", "⚡ Value Bomb & Hack"),
+                "curiosity_gap": clip.get("curiosity_gap", "9.6/10"),
+                "drop_off_risk": clip.get("drop_off_risk", "Very Low"),
+                "viral_action_tip": clip.get("viral_action_tip", "Pin an engaging question in comments to increase algorithmic watch time."),
                 "start_time": safe_start,
                 "end_time": safe_end,
                 "duration": round(safe_end - safe_start, 1),
                 "quality": video_quality,
-                "virality_score": clip.get("virality_score", 90),
+                "virality_score": clip.get("virality_score", 95),
+                "hook_score": clip.get("hook_score", 96),
+                "flow_score": clip.get("flow_score", 94),
+                "engagement_score": clip.get("engagement_score", 95),
+                "reason": clip.get("reason", ""),
                 "hook_score": clip.get("hook_score", 88),
                 "flow_score": clip.get("flow_score", 92),
                 "engagement_score": clip.get("engagement_score", 94),

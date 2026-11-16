@@ -80,6 +80,16 @@ function renderClips(clips) {
     const ttText = social.tiktok || `${clip.hook || clip.title} #fyp #viral`;
     const igText = social.instagram || `${clip.title} #reels #explore`;
 
+    let badgeClass = 'viral-blue';
+    let badgeText = `⚡ ${clip.virality_score}/100`;
+    if (clip.virality_score >= 95) {
+      badgeClass = 'viral-gold';
+      badgeText = `🔥 ${clip.virality_score}/100`;
+    } else if (clip.virality_score >= 90) {
+      badgeClass = 'viral-green';
+      badgeText = `🚀 ${clip.virality_score}/100`;
+    }
+
     card.innerHTML = `
       <div class="video-container">
         <video controls playsinline preload="metadata">
@@ -90,18 +100,39 @@ function renderClips(clips) {
       <div class="clip-info">
         <div class="clip-header">
           <div class="clip-title">${clip.title}</div>
-          <div class="viral-badge">🔥 ${clip.virality_score}/100</div>
+          <div class="viral-badge ${badgeClass}">${badgeText}</div>
         </div>
         <div class="clip-meta-date">Saved on: ${clip.created_at || 'Recent'}</div>
+
+        ${clip.hook_type ? `<div class="hook-type-pill">${clip.hook_type}</div>` : ''}
+
         <div class="clip-scores">
           <span class="score-chip">Hook: <strong>${clip.hook_score}%</strong></span>
           <span class="score-chip">Flow: <strong>${clip.flow_score}%</strong></span>
-          <span class="score-chip">Engagement: <strong>${clip.engagement_score || 92}%</strong></span>
+          <span class="score-chip">Engagement: <strong>${clip.engagement_score || 95}%</strong></span>
+          <span class="score-chip">Curiosity: <strong>${clip.curiosity_gap || '9.6/10'}</strong></span>
+          <span class="score-chip risk-${(clip.drop_off_risk || 'low').toLowerCase().replace(/\s+/g, '-')}">Drop-off: <strong>${clip.drop_off_risk || 'Very Low'}</strong></span>
           <span class="score-chip">⏱ <strong>${clip.duration}s</strong></span>
           <span class="score-chip">📺 <strong>${clip.quality || '1080p'}</strong></span>
         </div>
+
+        ${clip.hook_headline ? `
+          <div class="hook-headline-preview">
+            <span class="hook-badge-tag">TOP HOOK BANNER</span>
+            <span>🔥 ${clip.hook_headline} 🔥</span>
+          </div>
+        ` : ''}
+
         ${clip.hook ? `<div class="clip-hook">"${clip.hook}"</div>` : ''}
-        ${clip.reason ? `<div class="clip-reason">${clip.reason}</div>` : ''}
+
+        <!-- AI Virality & Algorithm Growth Insights -->
+        <details class="virality-details">
+          <summary>🧠 AI Virality & Algorithm Growth Insights</summary>
+          <div class="virality-details-content">
+            <p><strong>Retention Psychology:</strong> ${clip.reason || 'High emotional resonance and pattern interrupt.'}</p>
+            ${clip.viral_action_tip ? `<p class="viral-tip"><strong>🚀 Growth Hack:</strong> ${clip.viral_action_tip}</p>` : ''}
+          </div>
+        </details>
 
         <!-- Social Copy -->
         <div class="social-section">

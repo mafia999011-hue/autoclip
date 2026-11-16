@@ -87,7 +87,9 @@ class SubtitleGenerator:
         preset_name: str = "hormozi",
         enable_emojis: bool = True,
         words_per_group: int = 2,
-        video_quality: str = "1080p"
+        video_quality: str = "1080p",
+        hook_headline: str = None,
+        show_hook_header: bool = True
     ) -> str:
         preset = STYLE_PRESETS.get(preset_name, STYLE_PRESETS["hormozi"])
         highlight_color = preset["highlight"]
@@ -109,6 +111,9 @@ class SubtitleGenerator:
             font_size = preset["font_size"]
             outline_w = preset["outline_w"]
             margin_v = 480
+
+        hook_font_size = int(font_size * 0.72)
+        hook_margin_v = int(240 * (res_y / 1920))
 
         valid_words = []
         for w in words:
@@ -153,10 +158,20 @@ class SubtitleGenerator:
             "[V4+ Styles]",
             "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
             f"Style: Default,Arial,{font_size},{base_color},&H000000FF&,{outline_color},&H80000000&,-1,0,0,0,100,100,2,0,1,{outline_w},4,2,60,60,{margin_v},1",
+            f"Style: HookHeader,Arial,{hook_font_size},{highlight_color},&H000000FF&,{outline_color},&H90000000&,-1,0,0,0,100,100,2,0,1,{max(5, int(outline_w*0.85))},4,8,60,60,{hook_margin_v},1",
             "",
             "[Events]",
             "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
         ]
+
+        # Top Hook Banner: displays for the opening 4.5 seconds with gentle fade
+        if show_hook_header and hook_headline:
+            clean_headline = hook_headline.strip().upper()
+            hook_duration = min(4.5, max(1.5, clip_end - clip_start))
+            end_time_str = cls.format_ass_time(hook_duration)
+            ass_content.append(
+                f"Dialogue: 1,0:00:00.00,{end_time_str},HookHeader,,0,0,0,,{{\\fad(200,400)\\b1}}🔥 {clean_headline} 🔥"
+            )
 
         for chunk in chunks:
             for active_idx, target_word in enumerate(chunk):
