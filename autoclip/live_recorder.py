@@ -11,7 +11,12 @@ class LiveStreamRecorder:
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
-            'skip_download': True
+            'skip_download': True,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web', 'mweb']
+                }
+            }
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             try:
@@ -45,7 +50,12 @@ class LiveStreamRecorder:
         ydl_opts = {
             'format': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/best',
             'quiet': True,
-            'no_warnings': True
+            'no_warnings': True,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web', 'mweb']
+                }
+            }
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:

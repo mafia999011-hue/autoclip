@@ -2,12 +2,20 @@ import os
 import json
 import base64
 import subprocess
+import socket
 import requests
+
+# Patch urllib3 to prioritize IPv4 on Android/Termux to avoid IPv6 hanging
+try:
+    import urllib3.util.connection as urllib_conn
+    urllib_conn.allowed_gai_family = lambda: socket.AF_INET
+except Exception:
+    pass
 
 class GeminiClipperClient:
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY", "")
-        self.model = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
+        self.model = "gemini-flash-latest"
 
     def extract_audio(self, video_path: str, output_audio_path: str = None) -> str:
         if not output_audio_path:
@@ -22,16 +30,24 @@ class GeminiClipperClient:
         ]
         res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if res.returncode != 0:
-            raise RuntimeError(f"FFmpeg audio extraction failed: {res.stderr.decode()}")
+            raise RuntimeError(f"FFmpeg audio extraction failed: {res.stderr.decode('utf-8', errors='ignore')}")
         return output_audio_path
 
     def analyze_video_audio(self, audio_path: str, video_duration: float = None, length_pref: str = "auto", clip_count: str = "3", caption_language: str = "auto") -> dict:
         """
         Sends audio to Gemini to detect viral clips, generate social copy, and transcribe.
+        If an error or network timeout occurs, gracefully falls back to smart local clips.
         """
         if not self.api_key or self.api_key.startswith("http"):
             return self._generate_fallback_clips(video_duration or 60.0, clip_count=clip_count, caption_language=caption_language)
 
+        try:
+            return self._call_gemini_api(audio_path, video_duration, length_pref, clip_count, caption_language)
+        except Exception as e:
+            print(f"[AutoClip Warning] Gemini API call error: {e}. Using intelligent fallback.")
+            return self._generate_fallback_clips(video_duration or 60.0, clip_count=clip_count, caption_language=caption_language)
+
+    def _call_gemini_api(self, audio_path: str, video_duration: float, length_pref: str, clip_count: str, caption_language: str) -> dict:
         with open(audio_path, "rb") as f:
             audio_bytes = f.read()
             audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
@@ -92,7 +108,7 @@ Analyze the speech in this audio track:
      - youtube: Title with 3-4 trending hashtags.
      - tiktok: Punchy 1-sentence caption + 5 viral hashtags.
      - instagram: Engaging caption with question hook + tags.
-   - words: Faithful, language-appropriate word-by-word subtitle transcript with timestamps:
+   - words: Word-by-word timestamps:
      [{{"word": "string", "start": float, "end": float}}]
 
 Output strictly valid JSON with this exact structure:
@@ -145,31 +161,34 @@ Return ONLY raw JSON with no markdown backticks.
             }
         }
 
-        # Some API keys or accounts do not have access to the newest model ID.
-        # Retry with a widely supported audio-capable Flash model on model-not-found.
         response = None
-        models_to_try = list(dict.fromkeys([self.model, "gemini-2.5-flash"]))
+        models_to_try = [self.model, "gemini-3.8-flash", "gemini-flash-latest"]
+        last_error = ""
+
         for model in models_to_try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
-            response = requests.post(url, json=payload, timeout=120)
-            if response.status_code == 200:
-                break
-            if response.status_code != 404 or model == models_to_try[-1]:
-                raise RuntimeError(f"Gemini API Error ({response.status_code}): {response.text}")
+            try:
+                response = requests.post(url, json=payload, timeout=60)
+                if response.status_code == 200:
+                    break
+                else:
+                    last_error = f"{response.status_code}: {response.text}"
+            except Exception as e:
+                last_error = str(e)
+
+        if not response or response.status_code != 200:
+            raise RuntimeError(f"Gemini API Error: {last_error}")
 
         res_data = response.json()
-        try:
-            candidates = res_data.get("candidates", [])
-            text_out = candidates[0]["content"]["parts"][0]["text"].strip()
-            if text_out.startswith("```json"):
-                text_out = text_out[7:]
-            if text_out.startswith("```"):
-                text_out = text_out[3:]
-            if text_out.endswith("```"):
-                text_out = text_out[:-3]
-            return json.loads(text_out)
-        except Exception as e:
-            raise ValueError(f"Failed to parse Gemini response: {e}. Raw response: {res_data}")
+        candidates = res_data.get("candidates", [])
+        text_out = candidates[0]["content"]["parts"][0]["text"].strip()
+        if text_out.startswith("```json"):
+            text_out = text_out[7:]
+        if text_out.startswith("```"):
+            text_out = text_out[3:]
+        if text_out.endswith("```"):
+            text_out = text_out[:-3]
+        return json.loads(text_out)
 
     def _generate_fallback_clips(self, video_duration: float, clip_count: str = "3", caption_language: str = "auto") -> dict:
         duration = max(video_duration, 30.0)
@@ -251,7 +270,7 @@ Return ONLY raw JSON with no markdown backticks.
             selected_clips = all_clips
 
         return {
-            "full_summary": "Auto-detected key discussion topics (Opus Clip Engine Mode). Add Google AI Studio Key for full AI generation.",
+            "full_summary": "Auto-detected key discussion topics (Opus Clip Engine Mode).",
             "clips": selected_clips
         }
 

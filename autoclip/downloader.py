@@ -22,6 +22,7 @@ def download_online_video(url: str, output_dir: str, live_duration: int = 180) -
     """
     Downloads video from YouTube, Twitch, etc.
     If the link is an ongoing live stream, automatically captures a live snippet!
+    Bypasses YouTube bot verification using mobile android player client.
     """
     os.makedirs(output_dir, exist_ok=True)
     platform = detect_platform(url)
@@ -46,6 +47,11 @@ def download_online_video(url: str, output_dir: str, live_duration: int = 180) -
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web', 'mweb']
+            }
+        }
     }
     
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
