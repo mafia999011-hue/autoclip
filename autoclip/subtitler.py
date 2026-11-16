@@ -138,7 +138,7 @@ class SubtitleGenerator:
                 valid_words.append({
                     "word": raw_word + emoji_tag,
                     "start": max(0.0, w_start),
-                    "end": max(0.05, w_end)
+                    "end": min(clip_end - clip_start, max(0.05, w_end))
                 })
 
         # Group words into punchy 2-word chunks (Opus Clip / Hormozi pacing)

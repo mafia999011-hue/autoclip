@@ -1,6 +1,7 @@
 import os
 import re
 import uuid
+import shutil
 import subprocess
 import yt_dlp
 
@@ -8,6 +9,7 @@ class LiveStreamRecorder:
     @staticmethod
     def inspect_url(url: str) -> dict:
         """Checks if a URL is currently live and returns channel/stream info."""
+        node_path = shutil.which('node')
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -18,6 +20,8 @@ class LiveStreamRecorder:
                 }
             }
         }
+        if node_path:
+            ydl_opts['js_runtimes'] = {'node': {'path': node_path}}
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             try:
                 info = ydl.extract_info(url, download=False)
@@ -47,6 +51,7 @@ class LiveStreamRecorder:
         if progress_callback:
             progress_callback(f"Connecting to live broadcast: {url}...", 10)
 
+        node_path = shutil.which('node')
         ydl_opts = {
             'format': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/best',
             'quiet': True,
@@ -57,10 +62,17 @@ class LiveStreamRecorder:
                 }
             }
         }
+        if node_path:
+            ydl_opts['js_runtimes'] = {'node': {'path': node_path}}
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             stream_url = info.get('url')
+            if not stream_url and info.get('formats'):
+                for f in reversed(info['formats']):
+                    if f.get('url'):
+                        stream_url = f['url']
+                        break
             title = info.get('title') or "Live Stream"
             uploader = info.get('uploader') or info.get('channel') or "Streamer"
 

@@ -9,9 +9,10 @@ from autoclip.downloader import download_online_video
 from autoclip.storage import HistoryStorage
 
 app = Flask(__name__)
-app.config["UPLOAD_FOLDER"] = os.path.expanduser("~/autoclip/uploads")
-app.config["OUTPUT_FOLDER"] = os.path.expanduser("~/autoclip/output")
-app.config["DATA_FOLDER"] = os.path.expanduser("~/autoclip/data")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.config["UPLOAD_FOLDER"] = os.path.join(BASE_DIR, "uploads")
+app.config["OUTPUT_FOLDER"] = os.path.join(BASE_DIR, "output")
+app.config["DATA_FOLDER"] = os.path.join(BASE_DIR, "data")
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500 MB max
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -64,7 +65,8 @@ def get_history():
 
 @app.route("/api/history/<filename>", methods=["DELETE"])
 def delete_history_clip(filename):
-    success = history_storage.delete_clip(filename, output_dir=app.config["OUTPUT_FOLDER"])
+    safe_name = os.path.basename(filename)
+    success = history_storage.delete_clip(safe_name, output_dir=app.config["OUTPUT_FOLDER"])
     return jsonify({"status": "deleted" if success else "failed"})
 
 @app.route("/api/config", methods=["GET", "POST"])
@@ -205,11 +207,13 @@ def status(task_id):
 
 @app.route("/stream/<filename>")
 def stream_video(filename):
-    return send_from_directory(app.config["OUTPUT_FOLDER"], filename, mimetype="video/mp4")
+    safe_name = os.path.basename(filename)
+    return send_from_directory(app.config["OUTPUT_FOLDER"], safe_name, mimetype="video/mp4")
 
 @app.route("/download/<filename>")
 def download_clip(filename):
-    return send_from_directory(app.config["OUTPUT_FOLDER"], filename, as_attachment=True)
+    safe_name = os.path.basename(filename)
+    return send_from_directory(app.config["OUTPUT_FOLDER"], safe_name, as_attachment=True)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)

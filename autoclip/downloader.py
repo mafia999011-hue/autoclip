@@ -1,6 +1,7 @@
 import os
 import re
 import uuid
+import shutil
 import yt_dlp
 from .live_recorder import LiveStreamRecorder
 
@@ -40,8 +41,9 @@ def download_online_video(url: str, output_dir: str, live_duration: int = 180) -
     unique_prefix = uuid.uuid4().hex[:8]
     out_template = os.path.join(output_dir, f"{unique_prefix}_%(title).50s.%(ext)s")
     
+    node_path = shutil.which('node')
     ydl_opts = {
-        'format': 'bestvideo[height<=1440]+bestaudio/best[height<=1440]/best',
+        'format': 'bestvideo[height<=1440]+bestaudio/best[height<=1440]/bestvideo+bestaudio/best',
         'outtmpl': out_template,
         'merge_output_format': 'mp4',
         'noplaylist': True,
@@ -53,6 +55,8 @@ def download_online_video(url: str, output_dir: str, live_duration: int = 180) -
             }
         }
     }
+    if node_path:
+        ydl_opts['js_runtimes'] = {'node': {'path': node_path}}
     
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)

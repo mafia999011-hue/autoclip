@@ -142,8 +142,8 @@ function renderClips(clips) {
             <button class="social-tab" data-platform="ig">Instagram</button>
           </div>
           <div class="social-content-row">
-            <span class="social-text" id="socialText_${clip.id}">${ytText}</span>
-            <button class="btn-copy" id="copyBtn_${clip.id}">Copy</button>
+            <span class="social-text">${ytText}</span>
+            <button class="btn-copy">Copy</button>
           </div>
         </div>
 
@@ -159,8 +159,8 @@ function renderClips(clips) {
     `;
 
     // Social tabs
-    const textEl = card.querySelector(`#socialText_${clip.id}`);
-    const copyBtn = card.querySelector(`#copyBtn_${clip.id}`);
+    const textEl = card.querySelector('.social-text');
+    const copyBtn = card.querySelector('.btn-copy');
     const tabBtns = card.querySelectorAll('.social-tab');
     const socialTexts = { yt: ytText, tt: ttText, ig: igText };
 

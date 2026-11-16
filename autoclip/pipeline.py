@@ -34,7 +34,7 @@ class AutoClipPipeline:
         video_duration = info.get("duration", 60.0)
 
         update_progress("Extracting audio track for Opus AI engine", 25)
-        audio_path = self.client.extract_audio(video_path)
+        audio_path = self.client.extract_audio(video_path, video_duration=video_duration)
 
         update_progress(f"Analyzing virality & hooks ({caption_language.upper()} script, {clip_count} clips)", 45)
         ai_result = self.client.analyze_video_audio(
@@ -77,6 +77,19 @@ class AutoClipPipeline:
                 duration=clip_dur,
                 caption_language=caption_language
             )
+
+            # If micro-snippet speech transcription returned empty (offline or music video),
+            # fall back gracefully to timed hook/title words so subtitles are never blank
+            if not precise_words:
+                fallback_text = clip.get("hook") or clip.get("title", "")
+                tokens = [tok for tok in re.split(r'\s+', fallback_text) if tok.strip()]
+                if tokens:
+                    word_interval = min(0.45, max(0.2, clip_dur / max(1, len(tokens))))
+                    precise_words = []
+                    for i, tok in enumerate(tokens):
+                        w_s = round(i * word_interval, 2)
+                        w_e = round(min(clip_dur, (i + 1) * word_interval), 2)
+                        precise_words.append({"word": tok, "start": w_s, "end": w_e})
 
             hook_headline = clip.get("hook_headline") or title
 
@@ -133,7 +146,7 @@ class AutoClipPipeline:
 
         # Save to persistent history
         try:
-            HistoryStorage(os.path.join(os.path.dirname(self.output_dir), "data", "history.json")).save_clips(rendered_clips)
+            HistoryStorage(os.path.join(os.path.dirname(os.path.abspath(self.output_dir)), "data", "history.json")).save_clips(rendered_clips)
         except Exception as e:
             print(f"Warning: Failed to save to history: {e}")
 

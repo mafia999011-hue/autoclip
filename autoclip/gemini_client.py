@@ -18,7 +18,7 @@ class GeminiClipperClient:
         # gemini-flash-lite-latest is fastest, most reliable, and has 0% 503 high-demand errors
         self.model = "gemini-flash-lite-latest"
 
-    def extract_audio(self, video_path: str, output_audio_path: str = None) -> str:
+    def extract_audio(self, video_path: str, output_audio_path: str = None, video_duration: float = 60.0) -> str:
         if not output_audio_path:
             base, _ = os.path.splitext(video_path)
             output_audio_path = f"{base}_audio.mp3"
@@ -32,7 +32,17 @@ class GeminiClipperClient:
         ]
         res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if res.returncode != 0:
-            raise RuntimeError(f"FFmpeg audio extraction failed: {res.stderr.decode('utf-8', errors='ignore')}")
+            # Fallback for silent / audio-less videos: generate silent MP3 so pipeline continues
+            dur_str = str(max(10.0, float(video_duration or 60.0)))
+            silent_cmd = [
+                "ffmpeg", "-y", "-f", "lavfi",
+                "-i", "anullsrc=r=16000:cl=mono",
+                "-t", dur_str,
+                "-acodec", "libmp3lame",
+                "-b:a", "32k",
+                output_audio_path
+            ]
+            subprocess.run(silent_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return output_audio_path
 
     def analyze_video_audio(
@@ -222,7 +232,14 @@ Return ONLY raw JSON with no markdown backticks.
             text_out = text_out[3:]
         if text_out.endswith("```"):
             text_out = text_out[:-3]
-        return json.loads(text_out)
+        text_out = text_out.strip()
+        try:
+            return json.loads(text_out)
+        except Exception:
+            json_match = re.search(r'(\{[\s\S]*\})', text_out)
+            if json_match:
+                return json.loads(json_match.group(1))
+            raise
 
     def transcribe_clip_audio(
         self,
@@ -319,7 +336,12 @@ Return ONLY valid raw JSON with no markdown formatting.
                             txt = txt[3:]
                         if txt.endswith("```"):
                             txt = txt[:-3]
-                        parsed = json.loads(txt)
+                        txt = txt.strip()
+                        try:
+                            parsed = json.loads(txt)
+                        except Exception:
+                            json_match = re.search(r'(\{[\s\S]*\})', txt)
+                            parsed = json.loads(json_match.group(1)) if json_match else {}
                         raw_words = parsed.get("words", [])
                         return self._sanitize_words(raw_words, duration)
                 except Exception as e:
