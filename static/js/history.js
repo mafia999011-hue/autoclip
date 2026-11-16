@@ -23,8 +23,8 @@ saveKeyBtn.addEventListener('click', async () => {
   const key = apiKeyInput.value.trim();
   if (!key) return;
 
-  if (key.startsWith('http://') || key.startsWith('https://') || key.includes('youtu')) {
-    alert('⚠️ That looks like a video link, not an API key!\n\nTo clip a YouTube video, go to the Studio tab and paste it into the YouTube link input.');
+  if (key.startsWith('http://') || key.startsWith('https://') || key.includes('youtu') || key.includes('twitch')) {
+    alert('⚠️ That looks like a video link, not an API key!\n\nTo clip a YouTube or Twitch video, go to the Studio tab and paste it into the Video link input.');
     window.location.href = '/';
     return;
   }

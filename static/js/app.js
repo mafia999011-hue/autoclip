@@ -34,19 +34,19 @@ tabYoutube.addEventListener('click', () => {
   youtubeContainer.style.display = 'block';
 });
 
-// Fetch YouTube
+// Fetch Video from Link (YouTube / Twitch / etc.)
 fetchYtBtn.addEventListener('click', async () => {
   const url = youtubeUrlInput.value.trim();
   if (!url) {
-    ytStatusDisplay.textContent = 'Please enter a valid YouTube URL';
+    ytStatusDisplay.textContent = 'Please enter a valid video URL (YouTube, Twitch, etc.)';
     return;
   }
 
   fetchYtBtn.disabled = true;
-  ytStatusDisplay.textContent = 'Downloading YouTube video (this may take a few seconds)...';
+  ytStatusDisplay.textContent = 'Downloading video stream from link (this may take a moment)...';
 
   try {
-    const res = await fetch('/api/youtube', {
+    const res = await fetch('/api/fetch_url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
@@ -54,7 +54,8 @@ fetchYtBtn.addEventListener('click', async () => {
     const data = await res.json();
     if (data.video_id) {
       currentVideoId = data.video_id;
-      ytStatusDisplay.textContent = `Ready: ${data.title} (${Math.round(data.duration || 0)}s)`;
+      const platformTag = data.platform ? `[${data.platform}] ` : '';
+      ytStatusDisplay.textContent = `Ready: ${platformTag}${data.title} (${Math.round(data.duration || 0)}s)`;
       generateBtn.disabled = false;
     } else {
       ytStatusDisplay.textContent = `Failed: ${data.error || 'Could not download video'}`;
@@ -91,8 +92,8 @@ saveKeyBtn.addEventListener('click', async () => {
   if (!key) return;
 
   // Check if user accidentally pasted a video or web link
-  if (key.startsWith('http://') || key.startsWith('https://') || key.includes('youtu')) {
-    alert('⚠️ That looks like a video link, not an API key!\n\nWe have automatically moved it to the YouTube URL tab for you.');
+  if (key.startsWith('http://') || key.startsWith('https://') || key.includes('youtu') || key.includes('twitch')) {
+    alert('⚠️ That looks like a video link, not an API key!\n\nWe have automatically moved it to the Video URL tab for you.');
     tabYoutube.click();
     youtubeUrlInput.value = key;
     apiKeyInput.value = '';

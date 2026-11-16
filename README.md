@@ -33,7 +33,7 @@
 * **🎨 4 Creator Subtitle Presets:** Includes *Hormozi Bold Yellow*, *MrBeast Neon Green*, *Cyberpunk Cyan*, and *Sunset Pink*.
 * **📐 Smart 9:16 Reframing:** Converts 16:9 widescreen videos to 1080x1920 portrait shorts with blurred background styling or center speaker crop.
 * **📱 Multi-Platform Captions:** Generates tailored titles, hashtags, and captions for **YouTube Shorts**, **TikTok**, and **Instagram Reels** with a 1-click copy button.
-* **▶️ YouTube Link Downloader:** Paste any YouTube video URL to automatically download and process at up to 1080p.
+* **▶️ YouTube & Twitch Link Downloader:** Paste any YouTube or Twitch (Clips / VODs) video URL to automatically download and process at up to 1080p.
 * **⏱ Clip Duration & Count Controls:** Choose how many clips you want (`1`, `3`, `5`, `10`) and preferred duration (`< 30s`, `30–60s`, `60–90s`, `Auto`).
 
 ---

@@ -5,7 +5,7 @@ import threading
 from flask import Flask, request, jsonify, render_template, send_from_directory, Response
 from werkzeug.utils import secure_filename
 from autoclip.pipeline import AutoClipPipeline
-from autoclip.youtube import download_youtube_video
+from autoclip.downloader import download_online_video
 from autoclip.storage import HistoryStorage
 
 app = Flask(__name__)
@@ -92,19 +92,21 @@ def config():
         "masked_key": f"{current_key[:4]}...{current_key[-4:]}" if len(current_key) > 8 else ("✓ Set" if current_key else "")
     })
 
+@app.route("/api/fetch_url", methods=["POST"])
 @app.route("/api/youtube", methods=["POST"])
-def fetch_youtube():
+def fetch_online_video():
     data = request.json or {}
     url = data.get("url", "").strip()
     if not url:
-        return jsonify({"error": "No YouTube URL provided"}), 400
+        return jsonify({"error": "No video link provided"}), 400
     try:
-        res = download_youtube_video(url, app.config["UPLOAD_FOLDER"])
+        res = download_online_video(url, app.config["UPLOAD_FOLDER"])
         return jsonify({
             "status": "ready",
             "video_id": res["video_id"],
             "title": res["title"],
-            "duration": res["duration"]
+            "duration": res["duration"],
+            "platform": res.get("platform", "Video")
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
