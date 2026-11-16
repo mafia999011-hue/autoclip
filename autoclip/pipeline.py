@@ -64,19 +64,30 @@ class AutoClipPipeline:
             # to preserve starting/ending consonants and prevent jarring cuts
             safe_start = max(0.0, start_t - 0.15)
             safe_end = min(video_duration, end_t + 0.25)
+            clip_dur = max(0.5, safe_end - safe_start)
+
+            # Phase 2 (Micro): Transcribe exact speech for this specific clip to achieve 100% voice-accurate subtitles
+            progress_pct = 50 + int((idx + 1) / total_clips * 45)
+            update_progress(f"Transcribing voice timestamps for Clip {c_id}/{total_clips}...", max(10, progress_pct - 5))
+            precise_words = self.client.transcribe_clip_audio(
+                audio_path=audio_path,
+                start_time=safe_start,
+                duration=clip_dur,
+                caption_language=caption_language
+            )
 
             # Generate ASS subtitles with Opus auto-emojis, active bounce, and punchy 2-word groups
+            # precise_words are already relative to safe_start (starting from 0.0s)
             SubtitleGenerator.generate_ass(
-                words=words,
-                clip_start=safe_start,
-                clip_end=safe_end,
+                words=precise_words,
+                clip_start=0.0,
+                clip_end=clip_dur,
                 output_ass_path=ass_path,
                 preset_name=subtitle_preset,
                 enable_emojis=enable_emojis,
                 words_per_group=2
             )
 
-            progress_pct = 50 + int((idx + 1) / total_clips * 45)
             update_progress(f"Rendering Clip {c_id}/{total_clips}: {title}", progress_pct)
 
             VideoRenderer.render_clip(

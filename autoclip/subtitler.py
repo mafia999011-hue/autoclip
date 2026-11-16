@@ -97,9 +97,15 @@ class SubtitleGenerator:
 
         valid_words = []
         for w in words:
-            w_start = w.get("start", 0.0) - clip_start
-            w_end = w.get("end", 0.0) - clip_start
-            raw_word = w.get("word", "").strip().upper()
+            try:
+                raw_s = float(w.get("start", 0.0))
+                raw_e = float(w.get("end", raw_s + 0.3))
+            except (ValueError, TypeError):
+                continue
+
+            w_start = raw_s - clip_start
+            w_end = raw_e - clip_start
+            raw_word = str(w.get("word", "")).strip().upper()
             if not raw_word:
                 continue
 
