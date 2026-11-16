@@ -125,10 +125,6 @@ class AutoClipPipeline:
                 "flow_score": clip.get("flow_score", 94),
                 "engagement_score": clip.get("engagement_score", 95),
                 "reason": clip.get("reason", ""),
-                "hook_score": clip.get("hook_score", 88),
-                "flow_score": clip.get("flow_score", 92),
-                "engagement_score": clip.get("engagement_score", 94),
-                "reason": clip.get("reason", ""),
                 "social_copy": clip.get("social_copy", {}),
                 "video_file": os.path.basename(clip_output_path),
                 "download_url": f"/download/{os.path.basename(clip_output_path)}",
@@ -141,7 +137,7 @@ class AutoClipPipeline:
         except Exception as e:
             print(f"Warning: Failed to save to history: {e}")
 
-        update_progress("Complete! All Opus-style clips rendered successfully.", 100)
+        update_progress("Complete! All Money Clip shorts rendered successfully.", 100)
 
         return {
             "summary": ai_result.get("full_summary", ""),

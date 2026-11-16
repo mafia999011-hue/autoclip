@@ -156,7 +156,7 @@ def process():
     tasks[task_id] = {
         "status": "processing",
         "progress": 5,
-        "message": "Initializing Opus Clip AI pipeline...",
+        "message": "Initializing Money Clip AI pipeline...",
         "result": None,
         "error": None
     }

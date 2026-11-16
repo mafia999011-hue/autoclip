@@ -1,4 +1,4 @@
-# ⚡ AutoClip — AI Video Clipper (Opus Clip Alternative)
+# 💰 Money Clip — AI Video Clipper (Opus Clip Alternative)
 
 > **Turn long-form videos (podcasts, streams, YouTube videos) into viral 9:16 vertical shorts with AI virality scoring, millisecond-accurate karaoke subtitles, active word bounce, auto-emojis, and multi-platform social captions.**
 
@@ -113,12 +113,12 @@ python app.py
 
 ## 🔑 Getting a Free Google AI Studio Key
 
-AutoClip connects to Google AI Studio for high-speed transcription and viral highlight detection:
+Money Clip connects to Google AI Studio for high-speed transcription and viral highlight detection:
 
 1. Visit [Google AI Studio](https://aistudio.google.com/).
 2. Sign in with your Google Account.
 3. Click **"Get API key"** and create a new key (free tier available).
-4. In the AutoClip dashboard header, paste your key into the **"Enter Google AI Studio Key..."** box and click **Save Key**. The key is saved locally in `data/config.json`.
+4. In the Money Clip dashboard header, paste your key into the **"Enter Google AI Studio Key..."** box and click **Save Key**. The key is saved locally in `data/config.json`.
 
 ---
 
@@ -129,7 +129,7 @@ Once started, open your browser and navigate to:
 
 ```
 +--------------------------------------------------------------------------+
-|  ⚡ AutoClip    [ Studio ] [ Saved Library ]    [ ● Key Active ] [Save]  |
+|  💰 Money Clip  [ Studio ] [ Saved Library ]    [ ● Key Active ] [Save]  |
 +--------------------------------------------------------------------------+
 |                                                                          |
 |   Turn Long Videos into Viral Shorts                                     |
@@ -146,6 +146,7 @@ Once started, open your browser and navigate to:
 |   🎨 Subtitle Style:   [ 🟡 Hormozi Yellow / 🟢 MrBeast Green ]           |
 |   📺 Video Quality:    [ 💎 1080p Full HD / 👑 2K / ⚡ 720p ]            |
 |   📐 9:16 Framing:     [ ✨ Blurred Background / 🎯 Center Crop ]         |
+|   [✓] 🎯 Top Hook Banner (Pattern Interrupt)                             |
 |   [✓] 🔥 AI Auto-Insert Viral Emojis                                    |
 |                                                                          |
 |   [ 🚀 GENERATE VIRAL CLIPS ]                                            |
@@ -161,7 +162,7 @@ Once started, open your browser and navigate to:
    * **Target Length:** Set to `< 30s` for quick viral hooks or `30s - 60s` for standard shorts.
    * **Video Quality:** Select `1080p Full HD` (recommended), `1440p 2K Ultra HD`, or `720p HD`.
    * **Subtitle Style:** Pick your favorite aesthetic preset.
-3. **Click "Generate Viral Clips":** AutoClip extracts audio, runs 2-phase transcription, aligns timestamps to the speaker's voice, reframes to 9:16 vertical video, and burns active karaoke subtitles.
+3. **Click "Generate Viral Clips":** Money Clip extracts audio, runs 2-phase transcription, aligns timestamps to the speaker's voice, reframes to 9:16 vertical video, and burns active karaoke subtitles.
 4. **Preview & Download:**
    * Watch the short directly in the built-in 9:16 video player.
    * Check virality score, hook score, flow score, and retention explanation.

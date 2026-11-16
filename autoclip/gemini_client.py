@@ -53,7 +53,7 @@ class GeminiClipperClient:
         try:
             return self._call_gemini_api(audio_path, video_duration, length_pref, clip_count, caption_language)
         except Exception as e:
-            print(f"[AutoClip Warning] Gemini API call error: {e}. Using intelligent fallback.")
+            print(f"[Money Clip Warning] Gemini API call error: {e}. Using intelligent fallback.")
             return self._generate_fallback_clips(video_duration or 60.0, clip_count=clip_count, caption_language=caption_language)
 
     def _call_gemini_api(self, audio_path: str, video_duration: float, length_pref: str, clip_count: str, caption_language: str) -> dict:
@@ -323,7 +323,7 @@ Return ONLY valid raw JSON with no markdown formatting.
                         raw_words = parsed.get("words", [])
                         return self._sanitize_words(raw_words, duration)
                 except Exception as e:
-                    print(f"[AutoClip Warning] Snippet transcription error with {model}: {e}")
+                    print(f"[Money Clip Warning] Snippet transcription error with {model}: {e}")
                     continue
 
             return []
@@ -430,6 +430,6 @@ Return ONLY valid raw JSON with no markdown formatting.
             selected_clips = all_clips
 
         return {
-            "full_summary": "AutoClip speech processing completed.",
+            "full_summary": "Money Clip speech processing completed.",
             "clips": selected_clips
         }
