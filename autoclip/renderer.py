@@ -84,22 +84,28 @@ class VideoRenderer:
 
         filters = []
         if reframe_mode == "center_crop":
-            crop_zoom = f",zoompan=z='if(lt(mod(it,6),3.4), 1.0, 1.08)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={w}x{h}:fps=25" if enable_dynamic_zoom else ""
+            # Dynamic punch-in zoom for center crop (crops center 9:16 region with PTS-preserving 1.08x punch-in)
+            if enable_dynamic_zoom:
+                crop_expr = "crop='w=if(lt(mod(t,6),3.4), ih*(9/16), ih*(9/16)*0.92)':h='if(lt(mod(t,6),3.4), ih, ih*0.92)':x=(iw-ow)/2:y=(ih-oh)/2"
+            else:
+                crop_expr = "crop=ih*(9/16):ih:(iw-ow)/2:0"
             filters.append(
-                f"[0:v]crop=ih*(9/16):ih:(iw-ow)/2:0,"
+                f"[0:v]{crop_expr},"
                 f"scale={w}:{h}:flags=bicubic,"
-                f"unsharp=5:5:0.6:5:5:0.0{color_filter}{crop_zoom}[v_base]"
+                f"unsharp=5:5:0.6:5:5:0.0{color_filter}[v_base]"
             )
         else:
             # Cinematic Blurred Background:
             # - Background is scaled, cropped, heavily blurred, darkened (-18%), and given punchy contrast
-            # - Foreground is scaled, sharpened with unsharp filter, color boosted, and given optional dynamic zoom
-            fg_h = int(w * 9 / 16)
-            fg_zoom = f",zoompan=z='if(lt(mod(it,6),3.4), 1.0, 1.08)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={w}x{fg_h}:fps=25" if enable_dynamic_zoom else ""
+            # - Foreground has dynamic punch-in zoom using framerate-preserving crop, scaled, sharpened & color boosted
+            if enable_dynamic_zoom:
+                fg_crop = "crop='w=if(lt(mod(t,6),3.4), iw, iw*0.92)':h='if(lt(mod(t,6),3.4), ih, ih*0.92)':x=(iw-ow)/2:y=(ih-oh)/2,"
+            else:
+                fg_crop = ""
             filters.append(
                 f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,"
                 f"crop={w}:{h},boxblur=30:5,eq=brightness=-0.18:contrast=1.15[bg];"
-                f"[0:v]scale={w}:-2,unsharp=5:5:0.6:5:5:0.0{color_filter}{fg_zoom}[fg];"
+                f"[0:v]{fg_crop}scale={w}:-2,unsharp=5:5:0.6:5:5:0.0{color_filter}[fg];"
                 f"[bg][fg]overlay=(W-w)/2:(H-h)/2[v_base]"
             )
 
@@ -157,6 +163,7 @@ class VideoRenderer:
             "-preset", preset,
             "-crf", crf,
             "-pix_fmt", "yuv420p",
+            "-avoid_negative_ts", "make_zero",
             output_path
         ])
 

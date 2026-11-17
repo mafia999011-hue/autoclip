@@ -1,5 +1,27 @@
 [
   {
+    "id": 1,
+    "title": "Yeh Controller Sach Mein DualSense Killer Hai? \ud83c\udfae",
+    "hook": "Bhai agar tum yeh controller lete ho toh tumhare paise bachenge.",
+    "start_time": 5.0,
+    "end_time": 25.0,
+    "duration": 20.0,
+    "virality_score": 97,
+    "hook_score": 98,
+    "flow_score": 94,
+    "engagement_score": 96,
+    "reason": "High curiosity pattern-interrupt hook and relatable conversational delivery.",
+    "social_copy": {
+      "youtube": "Kya yeh sach mein DualSense Killer hai? \ud83c\udfae #Shorts #Gaming #TechBurner #Viral",
+      "tiktok": "Bhai yeh feature dekh kar dimaag ghum gaya \ud83e\udd2f #fyp #viral #techhacks",
+      "instagram": "Kya aap yeh controller buy karoge? Comment karo! \ud83d\udc47 #reels #gamingcommunity"
+    },
+    "video_file": "clip_1_Yeh_Controller_Sach_Mein.mp4",
+    "download_url": "/download/clip_1_Yeh_Controller_Sach_Mein.mp4",
+    "preview_url": "/stream/clip_1_Yeh_Controller_Sach_Mein.mp4",
+    "created_at": "2026-11-16 10:33"
+  },
+  {
     "id": 2,
     "title": "Why Everything You Knew Is Changing \ud83d\udca1",
     "hook": "Here is what happens when you take the leap.",
@@ -45,24 +67,58 @@
   },
   {
     "id": 1,
-    "title": "Yeh Controller Sach Mein DualSense Killer Hai? \ud83c\udfae",
-    "hook": "Bhai agar tum yeh controller lete ho toh tumhare paise bachenge.",
-    "start_time": 5.0,
-    "end_time": 25.0,
-    "duration": 20.0,
-    "virality_score": 97,
-    "hook_score": 98,
+    "title": "Highlight Moment #1 \ud83d\ude80",
+    "hook": "Wait until you see what happens next.",
+    "hook_headline": "WAIT TILL THE END! \ud83e\udd2f",
+    "hook_type": "\ud83e\udd2b Curiosity Gap & Secret",
+    "curiosity_gap": "9.8/10",
+    "drop_off_risk": "Very Low",
+    "viral_action_tip": "Pin a comment asking viewers their opinion to boost algorithmic comment velocity.",
+    "start_time": 4.85,
+    "end_time": 25.25,
+    "duration": 20.4,
+    "quality": "1080p",
+    "virality_score": 96,
+    "hook_score": 97,
     "flow_score": 94,
-    "engagement_score": 96,
-    "reason": "High curiosity pattern-interrupt hook and relatable conversational delivery.",
+    "engagement_score": 95,
+    "reason": "High visual motion and strong curiosity gap in opening 3 seconds.",
     "social_copy": {
-      "youtube": "Kya yeh sach mein DualSense Killer hai? \ud83c\udfae #Shorts #Gaming #TechBurner #Viral",
-      "tiktok": "Bhai yeh feature dekh kar dimaag ghum gaya \ud83e\udd2f #fyp #viral #techhacks",
-      "instagram": "Kya aap yeh controller buy karoge? Comment karo! \ud83d\udc47 #reels #gamingcommunity"
+      "youtube": "You won't believe this! #Shorts #Viral #Trending",
+      "tiktok": "Wait until the end... \ud83e\udd2f #fyp #foryou #viral",
+      "instagram": "Double tap if you agree! \ud83d\udc47 #reels #explore"
     },
-    "video_file": "clip_1_Yeh_Controller_Sach_Mein.mp4",
-    "download_url": "/download/clip_1_Yeh_Controller_Sach_Mein.mp4",
-    "preview_url": "/stream/clip_1_Yeh_Controller_Sach_Mein.mp4",
-    "created_at": "2026-11-16 10:33"
+    "video_file": "clip_1_Highlight_Moment__1.mp4",
+    "download_url": "/download/clip_1_Highlight_Moment__1.mp4",
+    "preview_url": "/stream/clip_1_Highlight_Moment__1.mp4",
+    "created_at": "2026-11-17 15:46"
+  },
+  {
+    "id": 2,
+    "title": "Highlight Moment #2 \ud83d\udca1",
+    "hook": "Here is the most important part.",
+    "hook_headline": "DON'T MISS THIS! \u26a1",
+    "hook_type": "\u26a1 Value Bomb & Hack",
+    "curiosity_gap": "9.4/10",
+    "drop_off_risk": "Low",
+    "viral_action_tip": "Add a fast loop cut so the video replays seamlessly.",
+    "start_time": 27.85,
+    "end_time": 50.25,
+    "duration": 22.4,
+    "quality": "1080p",
+    "virality_score": 91,
+    "hook_score": 92,
+    "flow_score": 90,
+    "engagement_score": 91,
+    "reason": "High retention sequence with actionable takeaway.",
+    "social_copy": {
+      "youtube": "Did you know this? \ud83d\udca1 #Shorts #Knowledge",
+      "tiktok": "Watch till the end \u26a1 #fyp #trending",
+      "instagram": "Tag a friend who needs to see this! \ud83d\udc47 #reels"
+    },
+    "video_file": "clip_2_Highlight_Moment__2.mp4",
+    "download_url": "/download/clip_2_Highlight_Moment__2.mp4",
+    "preview_url": "/stream/clip_2_Highlight_Moment__2.mp4",
+    "created_at": "2026-11-17 15:46"
   }
 ]
