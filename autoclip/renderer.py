@@ -26,6 +26,15 @@ QUALITY_PROFILES = {
     }
 }
 
+PROGRESS_BAR_COLORS = {
+    "hormozi": "0x00E6FF",      # Vibrant Yellow
+    "mrbeast": "0x00FF66",      # Neon Green
+    "cyberpunk": "0xFFFF00",    # Cyan
+    "sunset": "0xFF00C8",       # Magenta / Pink
+    "devin": "0x00A2FF",        # Gold / Red
+    "minimal_clean": "0xFFA600" # Electric Blue
+}
+
 class VideoRenderer:
     @staticmethod
     def check_audio_stream(video_path: str) -> bool:
@@ -49,11 +58,16 @@ class VideoRenderer:
         output_path: str,
         reframe_mode: str = "blurred_background",
         ass_path: str = None,
-        video_quality: str = "1080p"
+        video_quality: str = "1080p",
+        enable_dynamic_zoom: bool = True,
+        enable_progress_bar: bool = True,
+        enable_color_pop: bool = True,
+        enable_audio_boost: bool = True,
+        subtitle_preset: str = "hormozi"
     ) -> str:
         """
         Extracts, reframes (to 9:16 vertical), sharpens foreground, smooths audio transitions,
-        and renders video at requested quality (720p, 1080p, or 1440p).
+        and renders video at requested quality (720p, 1080p, or 1440p) with viral editing features.
         """
         duration = max(0.5, end_time - start_time)
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
@@ -66,25 +80,41 @@ class VideoRenderer:
         preset = profile["preset"]
         audio_br = profile["audio_bitrate"]
 
+        color_filter = ",eq=saturation=1.16:contrast=1.08:brightness=-0.02" if enable_color_pop else ""
+
         filters = []
         if reframe_mode == "center_crop":
+            crop_zoom = f",zoompan=z='if(lt(mod(it,6),3.4), 1.0, 1.08)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={w}x{h}:fps=25" if enable_dynamic_zoom else ""
             filters.append(
                 f"[0:v]crop=ih*(9/16):ih:(iw-ow)/2:0,"
                 f"scale={w}:{h}:flags=bicubic,"
-                f"unsharp=5:5:0.6:5:5:0.0[v_base]"
+                f"unsharp=5:5:0.6:5:5:0.0{color_filter}{crop_zoom}[v_base]"
             )
         else:
             # Cinematic Blurred Background:
             # - Background is scaled, cropped, heavily blurred, darkened (-18%), and given punchy contrast
-            # - Foreground is scaled and sharpened with unsharp filter for crisp viewing on mobile
+            # - Foreground is scaled, sharpened with unsharp filter, color boosted, and given optional dynamic zoom
+            fg_h = int(w * 9 / 16)
+            fg_zoom = f",zoompan=z='if(lt(mod(it,6),3.4), 1.0, 1.08)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={w}x{fg_h}:fps=25" if enable_dynamic_zoom else ""
             filters.append(
                 f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,"
                 f"crop={w}:{h},boxblur=30:5,eq=brightness=-0.18:contrast=1.15[bg];"
-                f"[0:v]scale={w}:-2,unsharp=5:5:0.6:5:5:0.0[fg];"
-                f"[bg][fg]overlay=0:({h}-overlay_h)/2[v_base]"
+                f"[0:v]scale={w}:-2,unsharp=5:5:0.6:5:5:0.0{color_filter}{fg_zoom}[fg];"
+                f"[bg][fg]overlay=(W-w)/2:(H-h)/2[v_base]"
             )
 
         last_v_stream = "[v_base]"
+
+        # Animated bottom retention progress bar (draws underneath subtitles)
+        if enable_progress_bar:
+            bar_color = PROGRESS_BAR_COLORS.get(subtitle_preset, "0x00E6FF")
+            bar_h = max(8, int(12 * (h / 1920)))
+            filters.append(
+                f"{last_v_stream}drawbox=x=0:y={h}-{bar_h}:w={w}:h={bar_h}:color=black@0.45:t=fill,"
+                f"drawbox=x=0:y={h}-{bar_h}:w='min({w},{w}*t/{duration:.2f})':h={bar_h}:color={bar_color}:t=fill[v_prog]"
+            )
+            last_v_stream = "[v_prog]"
+
         if ass_path and os.path.exists(ass_path):
             escaped_ass = ass_path.replace("\\", "/").replace(":", r"\:").replace("'", r"\'")
             filters.append(f"{last_v_stream}ass='{escaped_ass}'[v_out]")
@@ -93,11 +123,17 @@ class VideoRenderer:
             filters.append(f"{last_v_stream}null[v_out]")
             last_v_stream = "[v_out]"
 
-        # Audio transition smoothing (fade-in & fade-out to prevent clicks and harsh cutoffs)
+        # Audio transition smoothing + optional vocal presence boost for phone speakers
         fade_dur = min(0.2, duration / 4.0)
         out_start = max(0.0, duration - fade_dur)
         if has_audio:
-            filters.append(f"[0:a]afade=t=in:ss=0:d={fade_dur:.2f},afade=t=out:st={out_start:.2f}:d={fade_dur:.2f}[a_out]")
+            if enable_audio_boost:
+                filters.append(
+                    f"[0:a]afade=t=in:ss=0:d={fade_dur:.2f},afade=t=out:st={out_start:.2f}:d={fade_dur:.2f},"
+                    f"acompressor=threshold=-18dB:ratio=3:attack=5:release=50,volume=1.2[a_out]"
+                )
+            else:
+                filters.append(f"[0:a]afade=t=in:ss=0:d={fade_dur:.2f},afade=t=out:st={out_start:.2f}:d={fade_dur:.2f}[a_out]")
             last_a_stream = "[a_out]"
         else:
             last_a_stream = None

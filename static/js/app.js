@@ -184,7 +184,11 @@ generateBtn.addEventListener('click', async () => {
   const captionLanguage = document.getElementById('captionLanguage')?.value || 'auto';
   const videoQuality = document.getElementById('videoQuality')?.value || '1080p';
   const showHookHeader = document.getElementById('showHookHeader')?.checked ?? true;
-  const enableEmojis = document.getElementById('enableEmojis').checked;
+  const enableEmojis = document.getElementById('enableEmojis')?.checked ?? true;
+  const enableDynamicZoom = document.getElementById('enableDynamicZoom')?.checked ?? true;
+  const enableProgressBar = document.getElementById('enableProgressBar')?.checked ?? true;
+  const enableColorPop = document.getElementById('enableColorPop')?.checked ?? true;
+  const enableAudioBoost = document.getElementById('enableAudioBoost')?.checked ?? true;
 
   try {
     const res = await fetch('/api/process', {
@@ -199,7 +203,11 @@ generateBtn.addEventListener('click', async () => {
         clip_count: clipCount,
         caption_language: captionLanguage,
         video_quality: videoQuality,
-        show_hook_header: showHookHeader
+        show_hook_header: showHookHeader,
+        enable_dynamic_zoom: enableDynamicZoom,
+        enable_progress_bar: enableProgressBar,
+        enable_color_pop: enableColorPop,
+        enable_audio_boost: enableAudioBoost
       })
     });
     const data = await res.json();

@@ -65,6 +65,22 @@ STYLE_PRESETS = {
         "outline": "&H00000000&",
         "font_size": 74,
         "outline_w": 8
+    },
+    "devin": {
+        "name": "Devin Viral Gold & Red",
+        "highlight": "&H0000D7FF&", # Gold
+        "base": "&H00FFFFFF&",
+        "outline": "&H001111B3&",   # Deep Red
+        "font_size": 76,
+        "outline_w": 8
+    },
+    "minimal_clean": {
+        "name": "Clean White & Electric Blue",
+        "highlight": "&H00FFAA00&", # Electric Blue
+        "base": "&H00FFFFFF&",
+        "outline": "&H001A1A1A&",   # Deep Charcoal
+        "font_size": 74,
+        "outline_w": 8
     }
 }
 
@@ -183,9 +199,9 @@ class SubtitleGenerator:
                 line_parts = []
                 for idx, item in enumerate(chunk):
                     if idx == active_idx:
-                        # Animated active pop / bounce effect with highlight color
+                        # Animated active pop / bounce effect with highlight color (120% Hormozi pop)
                         line_parts.append(
-                            r"{\fscx115\fscy115\c" + highlight_color + r"\b1}" +
+                            r"{\fscx120\fscy120\c" + highlight_color + r"\b1}" +
                             item["word"] +
                             r"{\fscx100\fscy100\c" + base_color + r"\b1}"
                         )

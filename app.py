@@ -146,6 +146,10 @@ def process():
     caption_language = data.get("caption_language", "auto")
     video_quality = data.get("video_quality", "1080p")
     show_hook_header = data.get("show_hook_header", True)
+    enable_dynamic_zoom = data.get("enable_dynamic_zoom", True)
+    enable_progress_bar = data.get("enable_progress_bar", True)
+    enable_color_pop = data.get("enable_color_pop", True)
+    enable_audio_boost = data.get("enable_audio_boost", True)
 
     if not video_id:
         return jsonify({"error": "Missing video_id"}), 400
@@ -183,6 +187,10 @@ def process():
                 caption_language=caption_language,
                 video_quality=video_quality,
                 show_hook_header=show_hook_header,
+                enable_dynamic_zoom=enable_dynamic_zoom,
+                enable_progress_bar=enable_progress_bar,
+                enable_color_pop=enable_color_pop,
+                enable_audio_boost=enable_audio_boost,
                 progress_callback=update_progress
             )
             tasks[task_id]["status"] = "completed"

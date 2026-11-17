@@ -35,9 +35,13 @@
   - **Phase 1 (Macro):** Discovers high-retention viral moments across the audio timeline.
   - **Phase 2 (Micro):** Extracts the exact audio snippet and transcribes every spoken word with millisecond-level precision matching the speaker's real vocal timing.
 * **🇮🇳 Romanized Hinglish Support:** Transcribes Hindi speech into readable Latin alphabet (A-Z) Hinglish without Devanagari script, designed specifically for Indian YouTube Shorts & Instagram Reels.
-* **⚡ 2-Word Punchy Subtitle Delivery:** Rapid-fire 2-word groups with active word **115% bounce pop animation** (`\fscx115\fscy115`) for maximum viewer retention.
+* **🎬 Dynamic Camera Zoom / Punch-in:** Automatically cuts between 1.0x and 1.08x camera zoom every ~3.5 seconds, resetting viewer visual attention to dramatically boost watch-through retention.
+* **⏳ Bottom Retention Progress Bar:** Burns a sleek dual-layer animated progress bar that color-coordinates with the subtitle style, psychologically driving viewers to complete the short.
+* **🎨 AMOLED Color Pop & Contrast Boost:** Enhances saturation (+16%) and punchy contrast to make speaker skin tones and background visuals pop on mobile OLED screens.
+* **🔊 Voice Presence & Audio Compression:** Employs dynamic vocal compression and volume leveling so speech is crisp, punchy, and loud on phone speakers without clipping.
+* **⚡ 2-Word Punchy Subtitle Delivery:** Rapid-fire 2-word groups with active word **120% bounce pop animation** (`\fscx120\fscy120`) for maximum viewer retention.
 * **✨ AI Auto-Emoji Engine:** Analyzes spoken keywords and inserts context-aware animated emojis directly into subtitles (`PAISA` 💰, `AAG` 🔥, `JEET` 🏆, `CRAZY` 🤯, `CONTROLLER` 🎮, `SACH` 💯).
-* **🎨 4 Creator Subtitle Presets:** Includes *Hormozi Bold Yellow*, *MrBeast Neon Green*, *Cyberpunk Cyan*, and *Sunset Pink*.
+* **🎨 6 Creator Subtitle Presets:** Includes *Hormozi Bold Yellow*, *MrBeast Neon Green*, *Cyberpunk Cyan*, *Sunset Pink*, *Devin Viral Gold & Red*, and *Clean White & Electric Blue*.
 * **📺 Video Quality Profiles:** Choose between **1080p Full HD**, **1440p 2K Ultra HD**, and **720p HD** with automatic subtitle font and margin scaling.
 * **📐 Smart 9:16 Reframing & Audio Smoothing:** Converts 16:9 widescreen videos to 9:16 portrait shorts with a darkened blurred background, sharpened foreground, and smooth audio fade-ins/outs to eliminate clicks and pops.
 * **🔴 Live Stream Capture:** Paste active YouTube or Twitch live stream URLs to capture live snippets (2 to 10 minutes) on the fly.
@@ -179,6 +183,8 @@ Once started, open your browser and navigate to:
 | **MrBeast Neon Green** | Bright Green (`#00FF00`) | Heavy Stroke | High-energy, challenges, gaming |
 | **Cyberpunk Cyan** | Electric Blue (`#00FFFF`) | Deep Violet | Tech, future, AI content |
 | **Sunset Pink** | Vibrant Magenta (`#FF00FF`) | Solid Black | Lifestyle, vlog, aesthetic |
+| **Devin Gold & Red** | Royal Gold (`#00D7FF`) | Deep Crimson Red | Controversy, urgent news, finance |
+| **Clean White & Blue** | Electric Cyan-Blue (`#FFAA00`) | Charcoal Minimal | Luxury, educational, aesthetic |
 
 ---
 

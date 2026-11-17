@@ -23,6 +23,10 @@ class AutoClipPipeline:
         caption_language: str = "auto",
         video_quality: str = "1080p",
         show_hook_header: bool = True,
+        enable_dynamic_zoom: bool = True,
+        enable_progress_bar: bool = True,
+        enable_color_pop: bool = True,
+        enable_audio_boost: bool = True,
         progress_callback = None
     ) -> dict:
         def update_progress(stage: str, percent: int):
@@ -117,7 +121,12 @@ class AutoClipPipeline:
                 output_path=clip_output_path,
                 reframe_mode=reframe_mode,
                 ass_path=ass_path,
-                video_quality=video_quality
+                video_quality=video_quality,
+                enable_dynamic_zoom=enable_dynamic_zoom,
+                enable_progress_bar=enable_progress_bar,
+                enable_color_pop=enable_color_pop,
+                enable_audio_boost=enable_audio_boost,
+                subtitle_preset=subtitle_preset
             )
 
             rendered_clips.append({
