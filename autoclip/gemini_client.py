@@ -1,8 +1,12 @@
 import os
+import re
 import json
 import base64
 import subprocess
 import socket
+import time
+import wave
+import struct
 import requests
 
 # Patch urllib3 to prioritize IPv4 on Android/Termux to avoid IPv6 hanging
@@ -209,16 +213,22 @@ Return ONLY raw JSON with no markdown backticks.
         models_to_try = [self.model, "gemini-flash-latest", "gemini-3.5-flash-lite"]
         last_error = ""
 
-        for model in models_to_try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
-            try:
-                response = requests.post(url, json=payload, timeout=(10, 90))
-                if response.status_code == 200:
-                    break
-                else:
-                    last_error = f"{response.status_code}: {response.text}"
-            except Exception as e:
-                last_error = str(e)
+        import time
+        for attempt in range(2):
+            for model in models_to_try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
+                try:
+                    response = requests.post(url, json=payload, timeout=(15, 120))
+                    if response.status_code == 200:
+                        break
+                    else:
+                        last_error = f"{response.status_code}: {response.text}"
+                except Exception as e:
+                    last_error = str(e)
+            if response and response.status_code == 200:
+                break
+            if attempt == 0:
+                time.sleep(2)
 
         if not response or response.status_code != 200:
             raise RuntimeError(f"Gemini API Error: {last_error}")
@@ -256,19 +266,21 @@ Return ONLY raw JSON with no markdown backticks.
             return []
 
         base_dir = os.path.dirname(os.path.abspath(audio_path))
-        snippet_path = os.path.join(base_dir, f"snippet_{int(start_time*10)}_{int(duration*10)}.mp3")
+        snippet_path = os.path.join(base_dir, f"snippet_{int(start_time*10)}_{int(duration*10)}.wav")
 
         cmd = [
             "ffmpeg", "-y",
-            "-ss", str(start_time),
-            "-t", str(duration),
+            "-ss", f"{start_time:.3f}",
+            "-t", f"{duration:.3f}",
             "-i", audio_path,
-            "-ar", "16000", "-ac", "1", "-b:a", "32k",
+            "-ar", "16000", "-ac", "1",
             snippet_path
         ]
         res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if res.returncode != 0 or not os.path.exists(snippet_path):
             return []
+
+        physical_onset = self._detect_speech_onset(snippet_path)
 
         try:
             with open(snippet_path, "rb") as f:
@@ -287,17 +299,21 @@ Return ONLY raw JSON with no markdown backticks.
                 lang_rule = "Transcribe in the original language words."
 
             prompt = f"""
+You are an expert audio-to-text subtitler with millisecond acoustic precision.
 Listen to this {duration:.1f}-second audio clip very carefully.
 Transcribe every word spoken in this audio in sequential order.
 {lang_rule}
 
-Provide exact millisecond timestamps relative to this audio (starting from 0.0s).
-Every word MUST have a valid float for start and end matching the voice.
+CRITICAL TIMING ACCURACY INSTRUCTIONS:
+- For each word, output the EXACT time in seconds (float with 2-3 decimals) when the first phonetic sound/consonant begins in this audio.
+- Do NOT delay the start to the middle or end of the word.
+- Every word's `start` and `end` MUST precisely track the real vocal sound.
+- Include opening filler sounds/words if spoken (e.g. 'haan', 'bhai', 'arre') so subtitles never lead ahead of the voice.
 
 Output strictly valid JSON:
 {{
   "words": [
-    {{"word": "STRING", "start": 0.15, "end": 0.45}}
+    {{"word": "word", "start": 0.25, "end": 0.55}}
   ]
 }}
 Return ONLY valid raw JSON with no markdown formatting.
@@ -310,7 +326,7 @@ Return ONLY valid raw JSON with no markdown formatting.
                             {"text": prompt},
                             {
                                 "inline_data": {
-                                    "mime_type": "audio/mp3",
+                                    "mime_type": "audio/wav",
                                     "data": audio_b64
                                 }
                             }
@@ -318,35 +334,39 @@ Return ONLY valid raw JSON with no markdown formatting.
                     }
                 ],
                 "generationConfig": {
-                    "temperature": 0.1,
+                    "temperature": 0.05,
                     "response_mime_type": "application/json"
                 }
             }
 
             models_to_try = [self.model, "gemini-flash-latest", "gemini-3.5-flash-lite"]
-            for model in models_to_try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
-                try:
-                    r = requests.post(url, json=payload, timeout=(10, 45))
-                    if r.status_code == 200:
-                        txt = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-                        if txt.startswith("```json"):
-                            txt = txt[7:]
-                        if txt.startswith("```"):
-                            txt = txt[3:]
-                        if txt.endswith("```"):
-                            txt = txt[:-3]
-                        txt = txt.strip()
-                        try:
-                            parsed = json.loads(txt)
-                        except Exception:
-                            json_match = re.search(r'(\{[\s\S]*\})', txt)
-                            parsed = json.loads(json_match.group(1)) if json_match else {}
-                        raw_words = parsed.get("words", [])
-                        return self._sanitize_words(raw_words, duration)
-                except Exception as e:
-                    print(f"[Money Clip Warning] Snippet transcription error with {model}: {e}")
-                    continue
+            for attempt in range(2):
+                for model in models_to_try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
+                    try:
+                        r = requests.post(url, json=payload, timeout=(15, 60))
+                        if r.status_code == 200:
+                            txt = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+                            if txt.startswith("```json"):
+                                txt = txt[7:]
+                            if txt.startswith("```"):
+                                txt = txt[3:]
+                            if txt.endswith("```"):
+                                txt = txt[:-3]
+                            txt = txt.strip()
+                            try:
+                                parsed = json.loads(txt)
+                            except Exception:
+                                json_match = re.search(r'(\{[\s\S]*\})', txt)
+                                parsed = json.loads(json_match.group(1)) if json_match else {}
+                            raw_words = parsed.get("words", [])
+                            if raw_words:
+                                return self._sanitize_words(raw_words, duration, physical_onset=physical_onset)
+                    except Exception as e:
+                        print(f"[Money Clip Warning] Snippet transcription error with {model}: {e}")
+                        continue
+                if attempt == 0:
+                    time.sleep(1.5)
 
             return []
         finally:
@@ -357,7 +377,39 @@ Return ONLY valid raw JSON with no markdown formatting.
                     pass
 
     @staticmethod
-    def _sanitize_words(words: list, clip_duration: float) -> list:
+    def _detect_speech_onset(wav_path: str, max_search_s: float = 3.0) -> float:
+        try:
+            with wave.open(wav_path, "rb") as wf:
+                sr = wf.getframerate()
+                nframes = wf.getnframes()
+                data = wf.readframes(nframes)
+                samples = struct.unpack(f"<{nframes}h", data)
+
+            chunk_size = int(sr * 0.02)  # 20ms windows
+            energies = []
+            for i in range(0, min(len(samples), int(sr * max_search_s)), chunk_size):
+                chunk = samples[i:i + chunk_size]
+                if not chunk:
+                    continue
+                rms = (sum(s * s for s in chunk) / len(chunk)) ** 0.5
+                energies.append((i / sr, rms))
+
+            if not energies:
+                return 0.0
+
+            sorted_rms = sorted([e[1] for e in energies])
+            noise_floor = sorted_rms[max(0, int(len(sorted_rms) * 0.15))]
+            threshold = max(550.0, noise_floor * 2.2)
+
+            for t, rms in energies:
+                if rms >= threshold:
+                    return round(t, 2)
+            return 0.0
+        except Exception:
+            return 0.0
+
+    @staticmethod
+    def _sanitize_words(words: list, clip_duration: float, physical_onset: float = 0.0) -> list:
         cleaned = []
         for w in words:
             word_str = str(w.get("word", "")).strip()
@@ -389,6 +441,28 @@ Return ONLY valid raw JSON with no markdown formatting.
                 )
                 item["end"] = min(item["start"] + 0.45, max(item["start"] + 0.2, next_s))
 
+        # Acoustic onset calibration:
+        # Gemini audio token latency delays timestamps by ~0.25s-0.35s relative to acoustic onset.
+        # Calibrating with physical voice onset ensures words highlight the instant the sound hits the ear.
+        gemini_first_start = cleaned[0]["start"]
+        if physical_onset > 0.05:
+            raw_delay = gemini_first_start - physical_onset
+            offset = min(0.38, max(0.12, raw_delay + 0.10))
+        else:
+            offset = min(0.32, max(0.15, gemini_first_start - 0.04))
+
+        if offset > 0.0:
+            for item in cleaned:
+                item["start"] = max(0.0, round(item["start"] - offset, 2))
+                item["end"] = max(item["start"] + 0.15, round(item["end"] - offset, 2))
+
+        # Ensure monotonicity
+        for i in range(1, len(cleaned)):
+            if cleaned[i]["start"] < cleaned[i - 1]["start"]:
+                cleaned[i]["start"] = cleaned[i - 1]["start"]
+            if cleaned[i]["end"] <= cleaned[i]["start"]:
+                cleaned[i]["end"] = cleaned[i]["start"] + 0.2
+
         return cleaned
 
     def _generate_fallback_clips(self, video_duration: float, clip_count: str = "3", caption_language: str = "auto") -> dict:
@@ -399,12 +473,27 @@ Return ONLY valid raw JSON with no markdown formatting.
         c2_start = min(c1_end + 3.0, duration * 0.6)
         c2_end = min(c2_start + 22.0, duration)
 
+        if caption_language in ["hinglish", "auto"]:
+            t1 = "Bhai Yeh Scene Miss Mat Karna 🤯"
+            h1 = "Bhai yeh video end tak dekhna bohot tagda scene hai."
+            banner1 = "YEH KABHI MAT BHULNA! 🔥"
+            t2 = "Sach Mein Yeh Hua Tha? 💡"
+            h2 = "Abhi jo batane wala hu dhyan se sunna."
+            banner2 = "DHYAN SE SUNNA! ⚡"
+        else:
+            t1 = "Highlight Moment #1 🚀"
+            h1 = "Wait until you see what happens next."
+            banner1 = "WAIT TILL THE END! 🤯"
+            t2 = "Highlight Moment #2 💡"
+            h2 = "Here is the most important part."
+            banner2 = "DON'T MISS THIS! ⚡"
+
         all_clips = [
             {
                 "id": 1,
-                "title": "Highlight Moment #1 🚀",
-                "hook": "Wait until you see what happens next.",
-                "hook_headline": "WAIT TILL THE END! 🤯",
+                "title": t1,
+                "hook": h1,
+                "hook_headline": banner1,
                 "hook_type": "🤫 Curiosity Gap & Secret",
                 "start_time": round(c1_start, 2),
                 "end_time": round(c1_end, 2),
@@ -424,9 +513,9 @@ Return ONLY valid raw JSON with no markdown formatting.
             },
             {
                 "id": 2,
-                "title": "Highlight Moment #2 💡",
-                "hook": "Here is the most important part.",
-                "hook_headline": "DON'T MISS THIS! ⚡",
+                "title": t2,
+                "hook": h2,
+                "hook_headline": banner2,
                 "hook_type": "⚡ Value Bomb & Hack",
                 "start_time": round(c2_start, 2),
                 "end_time": round(c2_end, 2),

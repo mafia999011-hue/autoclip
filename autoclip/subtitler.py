@@ -189,10 +189,21 @@ class SubtitleGenerator:
                 f"Dialogue: 1,0:00:00.00,{end_time_str},HookHeader,,0,0,0,,{{\\fad(200,400)\\b1}}🔥 {clean_headline} 🔥"
             )
 
-        for chunk in chunks:
+        for c_idx, chunk in enumerate(chunks):
+            next_chunk_start = chunks[c_idx + 1][0]["start"] if c_idx + 1 < len(chunks) else clip_end - clip_start
             for active_idx, target_word in enumerate(chunk):
                 w_start = target_word["start"]
-                w_end = target_word["end"]
+                if active_idx + 1 < len(chunk):
+                    # Keep dialogue visible until next word in chunk begins (smooth continuous flow)
+                    w_end = chunk[active_idx + 1]["start"]
+                else:
+                    # Last word in chunk: keep on screen until next chunk starts for continuous flow
+                    # If there is a natural pause (> 1.0s), hold word for 0.5s before fading
+                    gap = next_chunk_start - target_word["start"]
+                    if gap <= 1.0:
+                        w_end = next_chunk_start
+                    else:
+                        w_end = max(target_word["end"] if target_word["end"] is not None else 0.0, target_word["start"] + 0.5)
                 if w_end <= w_start:
                     w_end = w_start + 0.3
 

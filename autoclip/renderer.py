@@ -130,16 +130,17 @@ class VideoRenderer:
             last_v_stream = "[v_out]"
 
         # Audio transition smoothing + optional vocal presence boost for phone speakers
-        fade_dur = min(0.2, duration / 4.0)
-        out_start = max(0.0, duration - fade_dur)
+        fade_in_dur = 0.04  # Ultra-fast 40ms de-click fade-in so opening words are never muffled
+        fade_out_dur = min(0.2, duration / 4.0)
+        out_start = max(0.0, duration - fade_out_dur)
         if has_audio:
             if enable_audio_boost:
                 filters.append(
-                    f"[0:a]afade=t=in:ss=0:d={fade_dur:.2f},afade=t=out:st={out_start:.2f}:d={fade_dur:.2f},"
+                    f"[0:a]afade=t=in:ss=0:d={fade_in_dur:.2f},afade=t=out:st={out_start:.2f}:d={fade_out_dur:.2f},"
                     f"acompressor=threshold=-18dB:ratio=3:attack=5:release=50,volume=1.2[a_out]"
                 )
             else:
-                filters.append(f"[0:a]afade=t=in:ss=0:d={fade_dur:.2f},afade=t=out:st={out_start:.2f}:d={fade_dur:.2f}[a_out]")
+                filters.append(f"[0:a]afade=t=in:ss=0:d={fade_in_dur:.2f},afade=t=out:st={out_start:.2f}:d={fade_out_dur:.2f}[a_out]")
             last_a_stream = "[a_out]"
         else:
             last_a_stream = None
