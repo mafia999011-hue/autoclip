@@ -70,19 +70,128 @@ function showToast(msg, type = 'success') {
 }
 
 // Tabs
-tabUpload.addEventListener('click', () => {
-  tabUpload.classList.add('active');
-  tabYoutube.classList.remove('active');
-  fileUploadContainer.style.display = 'block';
-  youtubeContainer.style.display = 'none';
+const tabLiveStudio = document.getElementById('tabLiveStudio');
+const liveStudioContainer = document.getElementById('liveStudioContainer');
+
+function activateTab(activeBtn, showContainer) {
+  [tabUpload, tabYoutube, tabLiveStudio].forEach(btn => btn?.classList.remove('active'));
+  [fileUploadContainer, youtubeContainer, liveStudioContainer].forEach(c => {
+    if (c) c.style.display = 'none';
+  });
+  activeBtn.classList.add('active');
+  showContainer.style.display = 'block';
+}
+
+tabUpload.addEventListener('click', () => activateTab(tabUpload, fileUploadContainer));
+tabYoutube.addEventListener('click', () => activateTab(tabYoutube, youtubeContainer));
+if (tabLiveStudio && liveStudioContainer) {
+  tabLiveStudio.addEventListener('click', () => activateTab(tabLiveStudio, liveStudioContainer));
+}
+
+// Live Stream Studio Controls
+const liveStreamUrlInput = document.getElementById('liveStreamUrlInput');
+const detectLiveBtn = document.getElementById('detectLiveBtn');
+const liveStreamCard = document.getElementById('liveStreamCard');
+const liveStreamerThumb = document.getElementById('liveStreamerThumb');
+const liveTagPill = document.getElementById('liveTagPill');
+const liveChannelName = document.getElementById('liveChannelName');
+const liveStreamTitle = document.getElementById('liveStreamTitle');
+const liveCategoryBadge = document.getElementById('liveCategoryBadge');
+const liveViewersBadge = document.getElementById('liveViewersBadge');
+const captureLiveBtn = document.getElementById('captureLiveBtn');
+const liveCaptureStatus = document.getElementById('liveCaptureStatus');
+const livePillBtns = document.querySelectorAll('.live-pill-btn');
+
+let selectedLiveDuration = 60;
+livePillBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    livePillBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedLiveDuration = parseInt(btn.dataset.dur, 10) || 60;
+  });
 });
 
-tabYoutube.addEventListener('click', () => {
-  tabYoutube.classList.add('active');
-  tabUpload.classList.remove('active');
-  fileUploadContainer.style.display = 'none';
-  youtubeContainer.style.display = 'block';
-});
+if (detectLiveBtn) {
+  detectLiveBtn.addEventListener('click', async () => {
+    const url = liveStreamUrlInput.value.trim();
+    if (!url) {
+      showToast('Please enter a Twitch, Kick, or YouTube Live stream URL', 'info');
+      return;
+    }
+    detectLiveBtn.disabled = true;
+    detectLiveBtn.textContent = '⏳ Checking...';
+    try {
+      const res = await fetch('/api/live/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+      if (data.is_live) {
+        liveStreamCard.style.display = 'flex';
+        liveChannelName.textContent = data.uploader || 'Live Streamer';
+        liveStreamTitle.textContent = data.title || 'Ongoing Live Broadcast';
+        liveCategoryBadge.textContent = `🎮 ${data.category || 'Live'}`;
+        const viewers = data.viewers ? (data.viewers > 999 ? (data.viewers / 1000).toFixed(1) + 'k' : data.viewers) : 'Live';
+        liveViewersBadge.textContent = `👥 ${viewers} Viewers`;
+        if (data.thumbnail) {
+          liveStreamerThumb.src = data.thumbnail;
+        } else {
+          liveStreamerThumb.src = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=300&h=160&fit=crop';
+        }
+        captureLiveBtn.disabled = false;
+        showToast(`Streamer is 🔴 LIVE: ${data.uploader}`);
+        
+        // Auto-select Streamer Split layout for gaming streams!
+        const reframeModeSelect = document.getElementById('reframeMode');
+        if (reframeModeSelect) {
+          reframeModeSelect.value = 'split_gaming';
+        }
+      } else {
+        liveStreamCard.style.display = 'none';
+        captureLiveBtn.disabled = true;
+        showToast(data.error ? `Stream check: ${data.error}` : 'Streamer is currently OFFLINE', 'error');
+      }
+    } catch (err) {
+      showToast(`Error checking stream: ${err.message}`, 'error');
+    } finally {
+      detectLiveBtn.disabled = false;
+      detectLiveBtn.textContent = '🔍 Check Stream';
+    }
+  });
+}
+
+if (captureLiveBtn) {
+  captureLiveBtn.addEventListener('click', async () => {
+    const url = liveStreamUrlInput.value.trim();
+    if (!url) return;
+    captureLiveBtn.disabled = true;
+    liveCaptureStatus.textContent = `🔴 Capturing ${selectedLiveDuration}s live broadcast snippet...`;
+    showToast(`Capturing live ${selectedLiveDuration}s snippet...`);
+    try {
+      const res = await fetch('/api/fetch_url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, live_duration: selectedLiveDuration })
+      });
+      const data = await res.json();
+      if (data.video_id) {
+        currentVideoId = data.video_id;
+        liveCaptureStatus.textContent = `✅ Ready: [LIVE] ${data.title} (${Math.round(data.duration || 0)}s)`;
+        generateBtn.disabled = false;
+        showToast('Live snippet captured! Click Generate Viral Clips.');
+      } else {
+        liveCaptureStatus.textContent = `Failed: ${data.error || 'Could not capture stream'}`;
+        showToast(`Capture failed: ${data.error}`, 'error');
+      }
+    } catch (err) {
+      liveCaptureStatus.textContent = `Error: ${err.message}`;
+      showToast(`Capture error: ${err.message}`, 'error');
+    } finally {
+      captureLiveBtn.disabled = false;
+    }
+  });
+}
 
 // Init: check API key status & cookies status
 fetch('/api/config')

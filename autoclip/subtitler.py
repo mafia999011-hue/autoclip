@@ -81,6 +81,46 @@ STYLE_PRESETS = {
         "outline": "&H001A1A1A&",   # Deep Charcoal
         "font_size": 74,
         "outline_w": 8
+    },
+    "ali_abdaal": {
+        "name": "Ali Abdaal Minimalist",
+        "highlight": "&H0066F0FF&", # Pastel Butter Yellow
+        "base": "&H00F8FAFC&",      # Soft Off-White
+        "outline": "&H001E293B&",   # Slate Gray
+        "font_size": 72,
+        "outline_w": 6
+    },
+    "iman_gadzhi": {
+        "name": "Iman Gadzhi Luxury Gold",
+        "highlight": "&H0078C3E5&", # Champagne Luxury Gold
+        "base": "&H00FFFFFF&",      # Crisp White
+        "outline": "&H00000000&",   # Deep Obsidian Black
+        "font_size": 74,
+        "outline_w": 8
+    },
+    "gaming_rgb": {
+        "name": "Gaming Neon RGB",
+        "highlight": "&H0000FFFF&", # Electric Neon Yellow
+        "base": "&H0000FF00&",      # Neon Green Base
+        "outline": "&H00000000&",   # Pitch Black
+        "font_size": 78,
+        "outline_w": 9
+    },
+    "vhs_retro": {
+        "name": "Retro 90s VHS Synthwave",
+        "highlight": "&H00008CFF&", # Amber Orange
+        "base": "&H0000FFFF&",      # Yellow Base
+        "outline": "&H00800040&",   # Dark Teal
+        "font_size": 76,
+        "outline_w": 8
+    },
+    "crimson_urgent": {
+        "name": "Crimson Urgency Red",
+        "highlight": "&H00271EFF&", # Vibrant Crimson Red
+        "base": "&H00FFFFFF&",      # Pure White
+        "outline": "&H00000000&",   # Pitch Black
+        "font_size": 78,
+        "outline_w": 9
     }
 }
 

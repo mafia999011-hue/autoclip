@@ -28,10 +28,16 @@ class LiveStreamRecorder:
                 is_live = bool(info.get('is_live') or info.get('live_status') in ['is_live', 'is_upcoming'])
                 title = info.get('title') or "Live Stream"
                 uploader = info.get('uploader') or info.get('channel') or "Streamer"
+                thumbnail = info.get('thumbnail') or ""
+                viewers = info.get('concurrent_view_count') or info.get('view_count') or 0
+                category = (info.get('categories') or ["Live Streaming"])[0] if info.get('categories') else "Gaming / Entertainment"
                 return {
                     "is_live": is_live,
                     "title": re.sub(r'[\r\n\t]+', ' ', title).strip(),
                     "uploader": uploader,
+                    "thumbnail": thumbnail,
+                    "viewers": viewers,
+                    "category": category,
                     "url": url
                 }
             except Exception as e:

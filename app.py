@@ -117,6 +117,19 @@ def fetch_online_video():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/live/check", methods=["POST"])
+def check_live_stream():
+    data = request.json or {}
+    url = data.get("url", "").strip()
+    if not url:
+        return jsonify({"error": "No stream link provided"}), 400
+    try:
+        from autoclip.live_recorder import LiveStreamRecorder
+        info = LiveStreamRecorder.inspect_url(url)
+        return jsonify(info)
+    except Exception as e:
+        return jsonify({"error": str(e), "is_live": False}), 500
+
 @app.route("/api/upload", methods=["POST"])
 def upload_file():
     if "video" not in request.files:

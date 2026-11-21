@@ -27,12 +27,17 @@ QUALITY_PROFILES = {
 }
 
 PROGRESS_BAR_COLORS = {
-    "hormozi": "0x00E6FF",      # Vibrant Yellow
-    "mrbeast": "0x00FF66",      # Neon Green
-    "cyberpunk": "0xFFFF00",    # Cyan
-    "sunset": "0xFF00C8",       # Magenta / Pink
-    "devin": "0x00A2FF",        # Gold / Red
-    "minimal_clean": "0xFFA600" # Electric Blue
+    "hormozi": "0x00E6FF",        # Vibrant Yellow
+    "mrbeast": "0x00FF66",        # Neon Green
+    "cyberpunk": "0xFFFF00",      # Cyan
+    "sunset": "0xFF00C8",         # Magenta / Pink
+    "devin": "0x00A2FF",          # Gold / Red
+    "minimal_clean": "0xFFA600",   # Electric Blue
+    "ali_abdaal": "0x66F0FF",     # Pastel Butter Yellow
+    "iman_gadzhi": "0x78C3E5",    # Champagne Gold
+    "gaming_rgb": "0x00FF33",     # Hyper RGB Green
+    "vhs_retro": "0x008CFF",      # Amber Synthwave Orange
+    "crimson_urgent": "0x271EFF"  # Crimson Red
 }
 
 class VideoRenderer:
@@ -83,7 +88,33 @@ class VideoRenderer:
         color_filter = ",eq=saturation=1.16:contrast=1.08:brightness=-0.02" if enable_color_pop else ""
 
         filters = []
-        if reframe_mode == "center_crop":
+        half_h = h // 2
+
+        if reframe_mode == "split_gaming":
+            # Gaming Streamer Split:
+            # - Top pane: Facecam / reaction cropped from top half of stream
+            # - Bottom pane: Main gameplay screen action cropped from bottom 70%
+            # - Stacked vertically into 9:16 portrait with sharpening and AMOLED color pop
+            filters.append(
+                f"[0:v]crop=iw:ih*0.5:0:0,scale={w}:{half_h},unsharp=5:5:0.6:5:5:0.0{color_filter}[cam];"
+                f"[0:v]crop=iw:ih*0.7:0:ih*0.3,scale={w}:{half_h},unsharp=5:5:0.6:5:5:0.0{color_filter}[game];"
+                f"[cam][game]vstack[v_base]"
+            )
+        elif reframe_mode == "split_reaction":
+            # Equal 50/50 Dual Cam Reaction / Podcast Split
+            filters.append(
+                f"[0:v]scale={w}:{half_h}:force_original_aspect_ratio=increase,crop={w}:{half_h},unsharp=5:5:0.5:5:5:0.0{color_filter}[top_v];"
+                f"[0:v]scale={w}:{half_h}:force_original_aspect_ratio=increase,crop={w}:{half_h},unsharp=5:5:0.5:5:5:0.0{color_filter}[bot_v];"
+                f"[top_v][bot_v]vstack[v_base]"
+            )
+        elif reframe_mode == "cinema_letterbox":
+            # Cinematic 9:16 Letterbox with darkened ambient glow:
+            filters.append(
+                f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},boxblur=40:5,eq=brightness=-0.35:contrast=1.3[bg];"
+                f"[0:v]scale={w}:-2,unsharp=5:5:0.7:5:5:0.0{color_filter}[fg];"
+                f"[bg][fg]overlay=(W-w)/2:(H-h)/2[v_base]"
+            )
+        elif reframe_mode == "center_crop":
             # Dynamic punch-in zoom for center crop (crops center 9:16 region with PTS-preserving 1.08x punch-in)
             if enable_dynamic_zoom:
                 crop_expr = "crop='w=if(lt(mod(t,6),3.4), ih*(9/16), ih*(9/16)*0.92)':h='if(lt(mod(t,6),3.4), ih, ih*0.92)':x=(iw-ow)/2:y=(ih-oh)/2"
@@ -95,9 +126,7 @@ class VideoRenderer:
                 f"unsharp=5:5:0.6:5:5:0.0{color_filter}[v_base]"
             )
         else:
-            # Cinematic Blurred Background:
-            # - Background is scaled, cropped, heavily blurred, darkened (-18%), and given punchy contrast
-            # - Foreground has dynamic punch-in zoom using framerate-preserving crop, scaled, sharpened & color boosted
+            # Cinematic Blurred Background (Standard default)
             if enable_dynamic_zoom:
                 fg_crop = "crop='w=if(lt(mod(t,6),3.4), iw, iw*0.92)':h='if(lt(mod(t,6),3.4), ih, ih*0.92)':x=(iw-ow)/2:y=(ih-oh)/2,"
             else:

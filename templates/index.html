@@ -47,6 +47,7 @@
         <div class="input-tabs">
           <button type="button" class="tab-btn active" id="tabUpload">📁 Upload Video File</button>
           <button type="button" class="tab-btn" id="tabYoutube">🌐 YouTube &amp; Twitch URL</button>
+          <button type="button" class="tab-btn" id="tabLiveStudio">🔴 Live Stream Studio (Twitch / Kick / YT Live)</button>
         </div>
 
         <div id="fileUploadContainer">
@@ -62,20 +63,50 @@
 
         <div id="youtubeContainer" style="display: none;">
           <div class="youtube-input-box">
-            <input type="url" id="youtubeUrlInput" placeholder="Paste YouTube or Twitch link (clips, VODs, or LIVE streams)...">
+            <input type="url" id="youtubeUrlInput" placeholder="Paste YouTube or Twitch link (clips, VODs, or public videos)...">
             <button type="button" id="fetchYtBtn" class="btn-sm">Fetch Video</button>
           </div>
-          <div class="live-snippet-row">
-            <span class="live-badge">🔴 Live Stream Setting:</span>
-            <span class="live-hint">If stream is live, capture next:</span>
-            <select id="liveDuration" class="live-duration-select">
-              <option value="120">⚡ 2 Minutes</option>
-              <option value="180" selected>⚡ 3 Minutes (Recommended)</option>
-              <option value="300">⚡ 5 Minutes</option>
-              <option value="600">⚡ 10 Minutes</option>
-            </select>
-          </div>
           <div class="file-name-display" id="ytStatusDisplay"></div>
+        </div>
+
+        <!-- Live Stream Studio Container -->
+        <div id="liveStudioContainer" class="live-studio-container" style="display: none;">
+          <div class="live-stream-input-row">
+            <input type="url" id="liveStreamUrlInput" placeholder="Paste Twitch channel (e.g. twitch.tv/shroud), Kick, or YouTube Live stream..." class="live-url-input">
+            <button type="button" id="detectLiveBtn" class="btn-live-detect">🔍 Check Stream</button>
+          </div>
+
+          <!-- Live Status Card -->
+          <div class="live-stream-card" id="liveStreamCard" style="display: none;">
+            <div class="live-card-thumb-wrap">
+              <img id="liveStreamerThumb" src="" alt="Streamer Thumbnail" class="live-streamer-thumb">
+              <span class="live-tag-pill" id="liveTagPill">🔴 LIVE</span>
+            </div>
+            <div class="live-card-details">
+              <div class="live-channel-name" id="liveChannelName">Streamer Channel</div>
+              <div class="live-stream-title" id="liveStreamTitle">Ongoing live broadcast title...</div>
+              <div class="live-meta-badges">
+                <span class="badge" id="liveCategoryBadge">🎮 Gaming</span>
+                <span class="badge" id="liveViewersBadge">👥 12.5k Viewers</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="live-controls-row">
+            <div class="live-control-group">
+              <label>⏱️ Capture Length:</label>
+              <div class="live-pill-group">
+                <button type="button" class="live-pill-btn active" data-dur="60">⚡ 60s Replay</button>
+                <button type="button" class="live-pill-btn" data-dur="120">⚡ 2 Mins</button>
+                <button type="button" class="live-pill-btn" data-dur="180">⚡ 3 Mins</button>
+                <button type="button" class="live-pill-btn" data-dur="300">⚡ 5 Mins</button>
+              </div>
+            </div>
+            <button type="button" id="captureLiveBtn" class="btn-capture-live" disabled>
+              🔴 Capture &amp; Clip Live Stream
+            </button>
+          </div>
+          <div class="file-name-display" id="liveCaptureStatus"></div>
         </div>
 
         <!-- Generation Settings -->
@@ -116,6 +147,11 @@
             <select id="subtitlePreset">
               <option value="hormozi" selected>🟡 Hormozi Bold Yellow (Top Performing)</option>
               <option value="mrbeast">🟢 MrBeast Neon Green</option>
+              <option value="ali_abdaal">☕ Ali Abdaal Minimalist (Soft Butter Yellow)</option>
+              <option value="iman_gadzhi">👑 Iman Gadzhi Luxury Gold (Documentary)</option>
+              <option value="gaming_rgb">🎮 Gaming Neon RGB (Hyper-Saturated Glow)</option>
+              <option value="vhs_retro">📼 Retro 90s VHS Synthwave (Amber &amp; Yellow)</option>
+              <option value="crimson_urgent">🚨 Crimson Urgency Red (Hormozi Alert)</option>
               <option value="cyberpunk">🔵 Cyberpunk Cyan &amp; Violet</option>
               <option value="sunset">🟣 Sunset Vibrant Pink</option>
               <option value="devin">🔴 Devin Viral Gold &amp; Red</option>
@@ -142,9 +178,12 @@
           </div>
 
           <div class="setting-item">
-            <label>📐 9:16 Aspect Framing</label>
+            <label>📐 9:16 Video Layout Template</label>
             <select id="reframeMode">
-              <option value="blurred_background" selected>✨ Blurred Background 9:16 (Standard)</option>
+              <option value="blurred_background" selected>✨ Blurred Background 9:16 (Standard Viral)</option>
+              <option value="split_gaming">🎮 Streamer Split 9:16 (Facecam Top + Game Bottom)</option>
+              <option value="split_reaction">👥 50/50 Dual Cam Reaction / Podcast Split</option>
+              <option value="cinema_letterbox">🎬 Cinematic 9:16 Letterbox with Ambient Glow</option>
               <option value="center_crop">🎯 Center Speaker Crop 9:16</option>
             </select>
           </div>
