@@ -4,25 +4,42 @@ from .reframer import VideoReframer
 
 QUALITY_PROFILES = {
     "720p": {
-        "width": 720,
-        "height": 1280,
         "crf": "23",
         "preset": "ultrafast",
         "audio_bitrate": "128k"
     },
     "1080p": {
-        "width": 1080,
-        "height": 1920,
         "crf": "20",
         "preset": "veryfast",
         "audio_bitrate": "192k"
     },
     "1440p": {
-        "width": 1440,
-        "height": 2560,
         "crf": "18",
         "preset": "veryfast",
         "audio_bitrate": "256k"
+    }
+}
+
+ASPECT_DIMENSIONS = {
+    "9:16": {
+        "720p": (720, 1280),
+        "1080p": (1080, 1920),
+        "1440p": (1440, 2560)
+    },
+    "1:1": {
+        "720p": (720, 720),
+        "1080p": (1080, 1080),
+        "1440p": (1440, 1440)
+    },
+    "16:9": {
+        "720p": (1280, 720),
+        "1080p": (1920, 1080),
+        "1440p": (2560, 1440)
+    },
+    "4:5": {
+        "720p": (720, 900),
+        "1080p": (1080, 1350),
+        "1440p": (1440, 1800)
     }
 }
 
@@ -62,16 +79,19 @@ class VideoRenderer:
         end_time: float,
         output_path: str,
         reframe_mode: str = "blurred_background",
+        aspect_ratio: str = "9:16",
         ass_path: str = None,
         video_quality: str = "1080p",
         enable_dynamic_zoom: bool = True,
         enable_progress_bar: bool = True,
         enable_color_pop: bool = True,
         enable_audio_boost: bool = True,
-        subtitle_preset: str = "hormozi"
+        subtitle_preset: str = "hormozi",
+        audio_override_path: str = None
     ) -> str:
         """
-        Extracts, reframes (to 9:16 vertical), sharpens foreground, smooths audio transitions,
+        Extracts, reframes (to 9:16 vertical, 1:1 square, 16:9 landscape, or 4:5 portrait),
+        sharpens foreground, smooths audio transitions / mixes AI voice dubs,
         and renders video at requested quality (720p, 1080p, or 1440p) with viral editing features.
         """
         duration = max(0.5, end_time - start_time)
@@ -79,54 +99,70 @@ class VideoRenderer:
         has_audio = cls.check_audio_stream(video_path)
 
         profile = QUALITY_PROFILES.get(video_quality, QUALITY_PROFILES["1080p"])
-        w = profile["width"]
-        h = profile["height"]
         crf = profile["crf"]
         preset = profile["preset"]
         audio_br = profile["audio_bitrate"]
+
+        ar_dict = ASPECT_DIMENSIONS.get(aspect_ratio, ASPECT_DIMENSIONS["9:16"])
+        w, h = ar_dict.get(video_quality, ar_dict["1080p"])
 
         color_filter = ",eq=saturation=1.16:contrast=1.08:brightness=-0.02" if enable_color_pop else ""
 
         filters = []
         half_h = h // 2
+        half_w = w // 2
 
         if reframe_mode == "split_gaming":
             # Gaming Streamer Split:
-            # - Top pane: Facecam / reaction cropped from top half of stream
-            # - Bottom pane: Main gameplay screen action cropped from bottom 70%
-            # - Stacked vertically into 9:16 portrait with sharpening and AMOLED color pop
-            filters.append(
-                f"[0:v]crop=iw:ih*0.5:0:0,scale={w}:{half_h},unsharp=5:5:0.6:5:5:0.0{color_filter}[cam];"
-                f"[0:v]crop=iw:ih*0.7:0:ih*0.3,scale={w}:{half_h},unsharp=5:5:0.6:5:5:0.0{color_filter}[game];"
-                f"[cam][game]vstack[v_base]"
-            )
+            # - Facecam cropped from stream top, gameplay screen cropped from action zone
+            if w < h:
+                # Vertical stacking for portrait/phone formats (9:16, 4:5)
+                filters.append(
+                    f"[0:v]crop=iw:ih*0.5:0:0,scale={w}:{half_h},unsharp=5:5:0.6:5:5:0.0{color_filter}[cam];"
+                    f"[0:v]crop=iw:ih*0.7:0:ih*0.3,scale={w}:{half_h},unsharp=5:5:0.6:5:5:0.0{color_filter}[game];"
+                    f"[cam][game]vstack[v_base]"
+                )
+            else:
+                # Horizontal side-by-side for landscape/square (16:9, 1:1)
+                filters.append(
+                    f"[0:v]crop=iw*0.5:ih:0:0,scale={half_w}:{h},unsharp=5:5:0.6:5:5:0.0{color_filter}[cam];"
+                    f"[0:v]crop=iw*0.7:ih:iw*0.3:0,scale={half_w}:{h},unsharp=5:5:0.6:5:5:0.0{color_filter}[game];"
+                    f"[cam][game]hstack[v_base]"
+                )
         elif reframe_mode == "split_reaction":
             # Equal 50/50 Dual Cam Reaction / Podcast Split
-            filters.append(
-                f"[0:v]scale={w}:{half_h}:force_original_aspect_ratio=increase,crop={w}:{half_h},unsharp=5:5:0.5:5:5:0.0{color_filter}[top_v];"
-                f"[0:v]scale={w}:{half_h}:force_original_aspect_ratio=increase,crop={w}:{half_h},unsharp=5:5:0.5:5:5:0.0{color_filter}[bot_v];"
-                f"[top_v][bot_v]vstack[v_base]"
-            )
+            if w < h:
+                filters.append(
+                    f"[0:v]scale={w}:{half_h}:force_original_aspect_ratio=increase,crop={w}:{half_h},unsharp=5:5:0.5:5:5:0.0{color_filter}[top_v];"
+                    f"[0:v]scale={w}:{half_h}:force_original_aspect_ratio=increase,crop={w}:{half_h},unsharp=5:5:0.5:5:5:0.0{color_filter}[bot_v];"
+                    f"[top_v][bot_v]vstack[v_base]"
+                )
+            else:
+                filters.append(
+                    f"[0:v]scale={half_w}:{h}:force_original_aspect_ratio=increase,crop={half_w}:{h},unsharp=5:5:0.5:5:5:0.0{color_filter}[left_v];"
+                    f"[0:v]scale={half_w}:{h}:force_original_aspect_ratio=increase,crop={half_w}:{h},unsharp=5:5:0.5:5:5:0.0{color_filter}[right_v];"
+                    f"[left_v][right_v]hstack[v_base]"
+                )
         elif reframe_mode == "cinema_letterbox":
-            # Cinematic 9:16 Letterbox with darkened ambient glow:
+            # Cinematic Letterbox with darkened ambient glow:
             filters.append(
                 f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},boxblur=40:5,eq=brightness=-0.35:contrast=1.3[bg];"
-                f"[0:v]scale={w}:-2,unsharp=5:5:0.7:5:5:0.0{color_filter}[fg];"
+                f"[0:v]scale={w}:{h}:force_original_aspect_ratio=decrease,unsharp=5:5:0.7:5:5:0.0{color_filter}[fg];"
                 f"[bg][fg]overlay=(W-w)/2:(H-h)/2[v_base]"
             )
         elif reframe_mode == "center_crop":
-            # Dynamic punch-in zoom for center crop (crops center 9:16 region with PTS-preserving 1.08x punch-in)
+            # Universal Dynamic punch-in zoom for center crop (scales and crops center region to target AR)
             if enable_dynamic_zoom:
-                crop_expr = "crop='w=if(lt(mod(t,6),3.4), ih*(9/16), ih*(9/16)*0.92)':h='if(lt(mod(t,6),3.4), ih, ih*0.92)':x=(iw-ow)/2:y=(ih-oh)/2"
+                crop_expr = f"crop='w=min(iw,ih*({w}/{h}))*if(lt(mod(t,6),3.4),1,0.92)':'h=min(ih,iw*({h}/{w}))*if(lt(mod(t,6),3.4),1,0.92)':x=(iw-ow)/2:y=(ih-oh)/2"
             else:
-                crop_expr = "crop=ih*(9/16):ih:(iw-ow)/2:0"
+                crop_expr = f"crop='w=min(iw,ih*({w}/{h}))':'h=min(ih,iw*({h}/{w}))':x=(iw-ow)/2:y=(ih-oh)/2"
             filters.append(
                 f"[0:v]{crop_expr},"
                 f"scale={w}:{h}:flags=bicubic,"
                 f"unsharp=5:5:0.6:5:5:0.0{color_filter}[v_base]"
             )
         else:
-            # Cinematic Blurred Background (Standard default)
+            # Cinematic Blurred Background (Universal default for ANY aspect ratio)
             if enable_dynamic_zoom:
                 fg_crop = "crop='w=if(lt(mod(t,6),3.4), iw, iw*0.92)':h='if(lt(mod(t,6),3.4), ih, ih*0.92)':x=(iw-ow)/2:y=(ih-oh)/2,"
             else:
@@ -134,7 +170,7 @@ class VideoRenderer:
             filters.append(
                 f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,"
                 f"crop={w}:{h},boxblur=30:5,eq=brightness=-0.18:contrast=1.15[bg];"
-                f"[0:v]{fg_crop}scale={w}:-2,unsharp=5:5:0.6:5:5:0.0{color_filter}[fg];"
+                f"[0:v]{fg_crop}scale={w}:{h}:force_original_aspect_ratio=decrease,unsharp=5:5:0.6:5:5:0.0{color_filter}[fg];"
                 f"[bg][fg]overlay=(W-w)/2:(H-h)/2[v_base]"
             )
 
@@ -158,11 +194,19 @@ class VideoRenderer:
             filters.append(f"{last_v_stream}null[v_out]")
             last_v_stream = "[v_out]"
 
-        # Audio transition smoothing + optional vocal presence boost for phone speakers
+        # Audio handling: check for audio_override_path (from AI Dubbing / voiceover ducking)
         fade_in_dur = 0.04  # Ultra-fast 40ms de-click fade-in so opening words are never muffled
         fade_out_dur = min(0.2, duration / 4.0)
         out_start = max(0.0, duration - fade_out_dur)
-        if has_audio:
+
+        has_override_audio = bool(audio_override_path and os.path.exists(audio_override_path))
+
+        if has_override_audio:
+            filters.append(
+                f"[1:a]afade=t=in:ss=0:d={fade_in_dur:.2f},afade=t=out:st={out_start:.2f}:d={fade_out_dur:.2f}[a_out]"
+            )
+            last_a_stream = "[a_out]"
+        elif has_audio:
             if enable_audio_boost:
                 filters.append(
                     f"[0:a]afade=t=in:ss=0:d={fade_in_dur:.2f},afade=t=out:st={out_start:.2f}:d={fade_out_dur:.2f},"
@@ -181,9 +225,15 @@ class VideoRenderer:
             "-ss", str(start_time),
             "-t", str(duration),
             "-i", video_path,
+        ]
+
+        if has_override_audio:
+            cmd.extend(["-i", audio_override_path])
+
+        cmd.extend([
             "-filter_complex", filter_str,
             "-map", last_v_stream,
-        ]
+        ])
 
         if last_a_stream:
             cmd.extend(["-map", last_a_stream, "-c:a", "aac", "-b:a", audio_br])

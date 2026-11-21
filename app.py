@@ -155,6 +155,8 @@ def process():
     data = request.json or {}
     video_id = data.get("video_id")
     reframe_mode = data.get("reframe_mode", "blurred_background")
+    aspect_ratio = data.get("aspect_ratio", "9:16")
+    dub_language = data.get("dub_language", "none")
     subtitle_preset = data.get("subtitle_preset", "hormozi")
     enable_emojis = data.get("enable_emojis", True)
     length_pref = data.get("length_pref", "auto")
@@ -196,6 +198,8 @@ def process():
             result = pipeline.process_video(
                 video_path=video_path,
                 reframe_mode=reframe_mode,
+                aspect_ratio=aspect_ratio,
+                dub_language=dub_language,
                 subtitle_preset=subtitle_preset,
                 enable_emojis=enable_emojis,
                 length_pref=length_pref,

@@ -539,6 +539,8 @@ generateBtn.addEventListener('click', async () => {
   clipsGrid.innerHTML = '';
 
   const reframeMode = document.getElementById('reframeMode').value;
+  const aspectRatio = document.getElementById('aspectRatio')?.value || '9:16';
+  const dubLanguage = document.getElementById('dubLanguage')?.value || 'none';
   const subtitlePreset = document.getElementById('subtitlePreset').value;
   const lengthPref = document.getElementById('lengthPref').value;
   const clipCount = document.getElementById('clipCount').value;
@@ -558,6 +560,8 @@ generateBtn.addEventListener('click', async () => {
       body: JSON.stringify({
         video_id: currentVideoId,
         reframe_mode: reframeMode,
+        aspect_ratio: aspectRatio,
+        dub_language: dubLanguage,
         subtitle_preset: subtitlePreset,
         enable_emojis: enableEmojis,
         length_pref: lengthPref,
@@ -675,6 +679,8 @@ function renderResults(result) {
           <span class="score-chip risk-${(clip.drop_off_risk || 'low').toLowerCase().replace(/\s+/g, '-')}">Drop-off: <strong>${clip.drop_off_risk || 'Very Low'}</strong></span>
           <span class="score-chip">⏱ <strong>${clip.duration}s</strong></span>
           <span class="score-chip">📺 <strong>${clip.quality || '1080p'}</strong></span>
+          <span class="score-chip">📐 <strong>${clip.aspect_ratio || '9:16'}</strong></span>
+          ${clip.dub_language && clip.dub_language !== 'none' ? `<span class="score-chip" style="background: rgba(234, 179, 8, 0.2); border-color: #eab308; color: #fef08a;">🎙️ <strong>${clip.dub_label || clip.dub_language.toUpperCase()}</strong></span>` : ''}
         </div>
 
         ${clip.hook_headline ? `

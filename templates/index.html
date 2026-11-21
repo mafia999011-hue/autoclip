@@ -178,13 +178,40 @@
           </div>
 
           <div class="setting-item">
-            <label>📐 9:16 Video Layout Template</label>
+            <label>📐 Multi-Format Aspect Ratio</label>
+            <select id="aspectRatio">
+              <option value="9:16" selected>📱 9:16 Vertical (TikTok, Reels, Shorts)</option>
+              <option value="1:1">🟦 1:1 Square (Instagram Feed, LinkedIn)</option>
+              <option value="16:9">🖥️ 16:9 Landscape (YouTube, Twitter / X)</option>
+              <option value="4:5">📸 4:5 Portrait (Instagram Feed &amp; Carousels)</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label>🎙️ AI Voice Dubbing &amp; Translation</label>
+            <select id="dubLanguage">
+              <option value="none" selected>🔇 Original Audio (No Dubbing)</option>
+              <option value="en">🇺🇸 English Dub (Global Voiceover)</option>
+              <option value="hi">🇮🇳 Hindi Dub (हिंदी वॉइसओवर)</option>
+              <option value="es">🇪🇸 Spanish Dub (Español)</option>
+              <option value="fr">🇫🇷 French Dub (Français)</option>
+              <option value="de">🇩🇪 German Dub (Deutsch)</option>
+              <option value="ja">🇯🇵 Japanese Dub (日本語)</option>
+              <option value="pt">🇧🇷 Portuguese Dub (Português)</option>
+              <option value="ru">🇷🇺 Russian Dub (Русский)</option>
+              <option value="ar">🇸🇦 Arabic Dub (العربية)</option>
+              <option value="id">🇮🇩 Indonesian Dub (Bahasa)</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label>🖼️ Framing &amp; Layout Template</label>
             <select id="reframeMode">
-              <option value="blurred_background" selected>✨ Blurred Background 9:16 (Standard Viral)</option>
-              <option value="split_gaming">🎮 Streamer Split 9:16 (Facecam Top + Game Bottom)</option>
-              <option value="split_reaction">👥 50/50 Dual Cam Reaction / Podcast Split</option>
-              <option value="cinema_letterbox">🎬 Cinematic 9:16 Letterbox with Ambient Glow</option>
-              <option value="center_crop">🎯 Center Speaker Crop 9:16</option>
+              <option value="blurred_background" selected>✨ Blurred Background Reframing (Standard Viral)</option>
+              <option value="split_gaming">🎮 Streamer Split (Facecam + Gameplay)</option>
+              <option value="split_reaction">👥 Dual Reaction / Podcast 50/50 Split</option>
+              <option value="cinema_letterbox">🎬 Cinematic Ambient Glow Letterbox</option>
+              <option value="center_crop">🎯 Center Speaker Crop &amp; Auto-Reframe</option>
             </select>
           </div>
 

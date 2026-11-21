@@ -124,6 +124,13 @@ STYLE_PRESETS = {
     }
 }
 
+ASPECT_RESOLUTIONS = {
+    "9:16": {"720p": (720, 1280), "1080p": (1080, 1920), "1440p": (1440, 2560), "margin_ratio": 0.25},
+    "1:1":  {"720p": (720, 720),   "1080p": (1080, 1080), "1440p": (1440, 1440), "margin_ratio": 0.14},
+    "16:9": {"720p": (1280, 720),  "1080p": (1920, 1080), "1440p": (2560, 1440), "margin_ratio": 0.12},
+    "4:5":  {"720p": (720, 900),   "1080p": (1080, 1350), "1440p": (1440, 1800), "margin_ratio": 0.18},
+}
+
 class SubtitleGenerator:
     @staticmethod
     def format_ass_time(seconds: float) -> str:
@@ -141,6 +148,7 @@ class SubtitleGenerator:
         clip_end: float,
         output_ass_path: str,
         preset_name: str = "hormozi",
+        aspect_ratio: str = "9:16",
         enable_emojis: bool = True,
         words_per_group: int = 2,
         video_quality: str = "1080p",
@@ -152,24 +160,16 @@ class SubtitleGenerator:
         base_color = preset["base"]
         outline_color = preset["outline"]
 
-        if video_quality == "720p":
-            res_x, res_y = 720, 1280
-            font_size = int(preset["font_size"] * (720 / 1080))
-            outline_w = max(4, int(preset["outline_w"] * (720 / 1080)))
-            margin_v = int(480 * (1280 / 1920))
-        elif video_quality == "1440p":
-            res_x, res_y = 1440, 2560
-            font_size = int(preset["font_size"] * (1440 / 1080))
-            outline_w = int(preset["outline_w"] * (1440 / 1080))
-            margin_v = int(480 * (2560 / 1920))
-        else:  # 1080p
-            res_x, res_y = 1080, 1920
-            font_size = preset["font_size"]
-            outline_w = preset["outline_w"]
-            margin_v = 480
+        ar_cfg = ASPECT_RESOLUTIONS.get(aspect_ratio, ASPECT_RESOLUTIONS["9:16"])
+        res_x, res_y = ar_cfg.get(video_quality, ar_cfg["1080p"])
+        scale_ref = min(res_x, res_y)
+
+        font_size = int(preset["font_size"] * (scale_ref / 1080))
+        outline_w = max(4, int(preset["outline_w"] * (scale_ref / 1080)))
+        margin_v = int(res_y * ar_cfg.get("margin_ratio", 0.25))
 
         hook_font_size = int(font_size * 0.72)
-        hook_margin_v = int(240 * (res_y / 1920))
+        hook_margin_v = int(res_y * 0.10)
 
         valid_words = []
         for w in words:

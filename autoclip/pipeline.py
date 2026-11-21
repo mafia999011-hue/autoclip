@@ -4,6 +4,7 @@ from .reframer import VideoReframer
 from .gemini_client import GeminiClipperClient
 from .subtitler import SubtitleGenerator
 from .renderer import VideoRenderer
+from .dubber import AIDubber, SUPPORTED_DUB_LANGUAGES
 from .storage import HistoryStorage
 
 class AutoClipPipeline:
@@ -16,6 +17,8 @@ class AutoClipPipeline:
         self,
         video_path: str,
         reframe_mode: str = "blurred_background",
+        aspect_ratio: str = "9:16",
+        dub_language: str = "none",
         subtitle_preset: str = "hormozi",
         enable_emojis: bool = True,
         length_pref: str = "auto",
@@ -96,15 +99,62 @@ class AutoClipPipeline:
                         precise_words.append({"word": tok, "start": w_s, "end": w_e})
 
             hook_headline = clip.get("hook_headline") or title
+            audio_override_path = None
+
+            # Optional AI Voice Dubbing & Speech Translation
+            is_dubbed = AIDubber.is_dubbing_enabled(dub_language)
+            if is_dubbed:
+                dub_lang_name = SUPPORTED_DUB_LANGUAGES.get(dub_language, dub_language)
+                update_progress(f"AI Dubbing voiceover to {dub_lang_name} for Clip {c_id}/{total_clips}...", max(10, progress_pct - 2))
+                
+                # Extract spoken script from timestamps
+                spoken_script = " ".join([re.sub(r'[^a-zA-Z0-9\u0600-\u06FF\u0400-\u04FF\u3040-\u30FF\u4E00-\u9FFF]', ' ', w.get("word", "")).strip() for w in precise_words if w.get("word")])
+                if len(spoken_script.strip()) < 10:
+                    spoken_script = clip.get("hook") or title
+
+                # Translate spoken script for voiceover
+                translated_script = AIDubber.translate_script(spoken_script, dub_language, api_key=self.api_key)
+
+                # Translate hook banner headline if present
+                if hook_headline:
+                    translated_hook = AIDubber.translate_script(hook_headline, dub_language, api_key=self.api_key)
+                    if translated_hook:
+                        hook_headline = translated_hook
+
+                # Synthesize neural voiceover
+                raw_dub_path = os.path.join(self.output_dir, f"{clip_base}_dub.mp3")
+                synth_audio = AIDubber.synthesize_speech(translated_script, dub_language, raw_dub_path, target_duration=clip_dur)
+
+                # Mix AI voice with 12% ducked original video audio
+                if synth_audio and os.path.exists(synth_audio):
+                    mixed_audio_path = os.path.join(self.output_dir, f"{clip_base}_mixed.aac")
+                    audio_override_path = AIDubber.duck_and_mix_audio(
+                        original_input=video_path,
+                        start_time=safe_start,
+                        duration=clip_dur,
+                        dub_audio_path=synth_audio,
+                        output_audio_path=mixed_audio_path
+                    )
+
+                    # Re-align subtitle words with translated script
+                    dub_tokens = [tok for tok in re.split(r'\s+', translated_script) if tok.strip()]
+                    if dub_tokens:
+                        dub_interval = min(0.42, max(0.18, clip_dur / len(dub_tokens)))
+                        dub_words = []
+                        for i, tok in enumerate(dub_tokens):
+                            w_s = round(i * dub_interval, 2)
+                            w_e = round(min(clip_dur, (i + 1) * dub_interval), 2)
+                            dub_words.append({"word": tok, "start": w_s, "end": w_e})
+                        precise_words = dub_words
 
             # Generate ASS subtitles with Opus auto-emojis, active bounce, top hook banner, and punchy 2-word groups
-            # precise_words are already relative to safe_start (starting from 0.0s)
             SubtitleGenerator.generate_ass(
                 words=precise_words,
                 clip_start=0.0,
                 clip_end=clip_dur,
                 output_ass_path=ass_path,
                 preset_name=subtitle_preset,
+                aspect_ratio=aspect_ratio,
                 enable_emojis=enable_emojis,
                 words_per_group=2,
                 video_quality=video_quality,
@@ -112,7 +162,7 @@ class AutoClipPipeline:
                 show_hook_header=show_hook_header
             )
 
-            update_progress(f"Rendering Clip {c_id}/{total_clips}: {title} ({video_quality})", progress_pct)
+            update_progress(f"Rendering Clip {c_id}/{total_clips}: {title} ({aspect_ratio}, {video_quality})", progress_pct)
 
             VideoRenderer.render_clip(
                 video_path=video_path,
@@ -120,13 +170,15 @@ class AutoClipPipeline:
                 end_time=safe_end,
                 output_path=clip_output_path,
                 reframe_mode=reframe_mode,
+                aspect_ratio=aspect_ratio,
                 ass_path=ass_path,
                 video_quality=video_quality,
                 enable_dynamic_zoom=enable_dynamic_zoom,
                 enable_progress_bar=enable_progress_bar,
                 enable_color_pop=enable_color_pop,
                 enable_audio_boost=enable_audio_boost,
-                subtitle_preset=subtitle_preset
+                subtitle_preset=subtitle_preset,
+                audio_override_path=audio_override_path
             )
 
             rendered_clips.append({
@@ -142,6 +194,9 @@ class AutoClipPipeline:
                 "end_time": safe_end,
                 "duration": round(safe_end - safe_start, 1),
                 "quality": video_quality,
+                "aspect_ratio": aspect_ratio,
+                "dub_language": dub_language,
+                "dub_label": SUPPORTED_DUB_LANGUAGES.get(dub_language, "Original"),
                 "virality_score": clip.get("virality_score", 95),
                 "hook_score": clip.get("hook_score", 96),
                 "flow_score": clip.get("flow_score", 94),
