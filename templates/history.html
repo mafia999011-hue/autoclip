@@ -67,6 +67,29 @@
     </main>
   </div>
 
+  <!-- Video Player Modal -->
+  <div class="modal-backdrop" id="videoModal" style="display: none;">
+    <div class="modal-content video-modal-content">
+      <button type="button" class="modal-close" id="closeVideoModal">&times;</button>
+      <div class="modal-video-wrapper">
+        <video id="modalVideoPlayer" controls playsinline autoplay loop></video>
+      </div>
+      <div class="modal-video-info">
+        <h3 id="modalVideoTitle">Clip Preview</h3>
+        <div class="modal-score-badges">
+          <span class="badge" id="modalViralityBadge">Virality: 96/100</span>
+          <span class="badge" id="modalQualityBadge">1080p</span>
+        </div>
+        <div class="modal-action-row">
+          <a id="modalDownloadLink" class="btn-primary btn-modal-download" download>⬇️ Download Short</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
   <script src="/static/js/history.js"></script>
 </body>
 </html>

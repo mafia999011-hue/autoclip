@@ -1,4 +1,5 @@
 let currentVideoId = null;
+let currentTaskId = null;
 let pollInterval = null;
 
 // DOM Elements
@@ -19,6 +20,55 @@ const youtubeUrlInput = document.getElementById('youtubeUrlInput');
 const fetchYtBtn = document.getElementById('fetchYtBtn');
 const ytStatusDisplay = document.getElementById('ytStatusDisplay');
 
+const progressSection = document.getElementById('progressSection');
+const progressBar = document.getElementById('progressBar');
+const progressPct = document.getElementById('progressPct');
+const statusMessage = document.getElementById('statusMessage');
+
+const resultsSection = document.getElementById('resultsSection');
+const resultsSummary = document.getElementById('resultsSummary');
+const clipsGrid = document.getElementById('clipsGrid');
+const downloadAllZipBtn = document.getElementById('downloadAllZipBtn');
+
+// Modals
+const videoModal = document.getElementById('videoModal');
+const closeVideoModal = document.getElementById('closeVideoModal');
+const modalVideoPlayer = document.getElementById('modalVideoPlayer');
+const modalVideoTitle = document.getElementById('modalVideoTitle');
+const modalViralityBadge = document.getElementById('modalViralityBadge');
+const modalQualityBadge = document.getElementById('modalQualityBadge');
+const modalDownloadLink = document.getElementById('modalDownloadLink');
+
+const cookiesModal = document.getElementById('cookiesModal');
+const openCookiesBtn = document.getElementById('openCookiesBtn');
+const closeCookiesModal = document.getElementById('closeCookiesModal');
+const cookieDot = document.getElementById('cookieDot');
+const cookieStatusText = document.getElementById('cookieStatusText');
+const cookieSizeRow = document.getElementById('cookieSizeRow');
+const cookieSizeText = document.getElementById('cookieSizeText');
+const cookieDropZone = document.getElementById('cookieDropZone');
+const cookieFileInput = document.getElementById('cookieFileInput');
+const deleteCookiesBtn = document.getElementById('deleteCookiesBtn');
+
+const cleanCacheBtn = document.getElementById('cleanCacheBtn');
+
+// Toast Notification System
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+  toast.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(15px)';
+    toast.style.transition = 'all 0.3s ease';
+    setTimeout(() => toast.remove(), 350);
+  }, 3500);
+}
+
 // Tabs
 tabUpload.addEventListener('click', () => {
   tabUpload.classList.add('active');
@@ -33,6 +83,221 @@ tabYoutube.addEventListener('click', () => {
   fileUploadContainer.style.display = 'none';
   youtubeContainer.style.display = 'block';
 });
+
+// Init: check API key status & cookies status
+fetch('/api/config')
+  .then(res => res.json())
+  .then(data => {
+    if (data.has_key) {
+      keyDot.classList.add('active');
+      apiKeyInput.placeholder = `AI Studio Key (${data.masked_key}) ✓`;
+    }
+  });
+
+function loadCookieStatus() {
+  fetch('/api/cookies')
+    .then(res => res.json())
+    .then(data => {
+      if (data.has_cookies) {
+        if (cookieDot) cookieDot.classList.add('active');
+        if (cookieStatusText) {
+          cookieStatusText.textContent = '🟢 Connected & Active';
+          cookieStatusText.style.color = '#10b981';
+        }
+        if (cookieSizeRow) cookieSizeRow.style.display = 'flex';
+        if (cookieSizeText) cookieSizeText.textContent = `${data.size_kb} KB`;
+        if (deleteCookiesBtn) deleteCookiesBtn.style.display = 'inline-block';
+      } else {
+        if (cookieDot) cookieDot.classList.remove('active');
+        if (cookieStatusText) {
+          cookieStatusText.textContent = '⚪ Not Connected';
+          cookieStatusText.style.color = '#94a3b8';
+        }
+        if (cookieSizeRow) cookieSizeRow.style.display = 'none';
+        if (deleteCookiesBtn) deleteCookiesBtn.style.display = 'none';
+      }
+    })
+    .catch(() => {});
+}
+loadCookieStatus();
+
+// Cookies Modal Listeners
+if (openCookiesBtn && cookiesModal) {
+  openCookiesBtn.addEventListener('click', () => {
+    cookiesModal.style.display = 'flex';
+    loadCookieStatus();
+  });
+}
+
+if (closeCookiesModal && cookiesModal) {
+  closeCookiesModal.addEventListener('click', () => {
+    cookiesModal.style.display = 'none';
+  });
+}
+
+if (cookiesModal) {
+  cookiesModal.addEventListener('click', (e) => {
+    if (e.target === cookiesModal) cookiesModal.style.display = 'none';
+  });
+}
+
+if (cookieDropZone && cookieFileInput) {
+  cookieDropZone.addEventListener('click', () => cookieFileInput.click());
+
+  cookieFileInput.addEventListener('change', () => {
+    if (cookieFileInput.files.length) {
+      uploadCookieFile(cookieFileInput.files[0]);
+    }
+  });
+
+  ['dragenter', 'dragover'].forEach(evt => {
+    cookieDropZone.addEventListener(evt, e => {
+      e.preventDefault();
+      cookieDropZone.style.borderColor = '#6366f1';
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(evt => {
+    cookieDropZone.addEventListener(evt, e => {
+      e.preventDefault();
+      cookieDropZone.style.borderColor = '';
+    });
+  });
+
+  cookieDropZone.addEventListener('drop', e => {
+    if (e.dataTransfer.files.length) {
+      uploadCookieFile(e.dataTransfer.files[0]);
+    }
+  });
+}
+
+async function uploadCookieFile(file) {
+  const formData = new FormData();
+  formData.append('cookies', file);
+  try {
+    const res = await fetch('/api/cookies', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (data.status === 'saved') {
+      showToast('YouTube cookies uploaded successfully!');
+      loadCookieStatus();
+    } else {
+      showToast(data.error || 'Failed to upload cookies', 'error');
+    }
+  } catch (err) {
+    showToast(`Error: ${err.message}`, 'error');
+  }
+}
+
+if (deleteCookiesBtn) {
+  deleteCookiesBtn.addEventListener('click', async () => {
+    if (!confirm('Remove YouTube cookies file?')) return;
+    try {
+      await fetch('/api/cookies', { method: 'DELETE' });
+      showToast('YouTube cookies removed');
+      loadCookieStatus();
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error');
+    }
+  });
+}
+
+// Clean Cache Button
+if (cleanCacheBtn) {
+  cleanCacheBtn.addEventListener('click', async () => {
+    cleanCacheBtn.disabled = true;
+    cleanCacheBtn.textContent = '🧹 Cleaning...';
+    try {
+      const res = await fetch('/api/clean_cache', { method: 'POST' });
+      const data = await res.json();
+      showToast(`Cleaned ${data.files_removed} temp files (${data.freed_mb} MB freed)!`);
+    } catch (err) {
+      showToast(`Error cleaning cache: ${err.message}`, 'error');
+    } finally {
+      cleanCacheBtn.disabled = false;
+      cleanCacheBtn.textContent = '🧹 Clean Cache';
+    }
+  });
+}
+
+// Video Player Modal Listeners
+if (closeVideoModal && videoModal) {
+  closeVideoModal.addEventListener('click', () => {
+    videoModal.style.display = 'none';
+    if (modalVideoPlayer) {
+      modalVideoPlayer.pause();
+      modalVideoPlayer.src = '';
+    }
+  });
+}
+
+if (videoModal) {
+  videoModal.addEventListener('click', (e) => {
+    if (e.target === videoModal) {
+      videoModal.style.display = 'none';
+      if (modalVideoPlayer) {
+        modalVideoPlayer.pause();
+        modalVideoPlayer.src = '';
+      }
+    }
+  });
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (videoModal && videoModal.style.display === 'flex') {
+      videoModal.style.display = 'none';
+      if (modalVideoPlayer) {
+        modalVideoPlayer.pause();
+        modalVideoPlayer.src = '';
+      }
+    }
+    if (cookiesModal && cookiesModal.style.display === 'flex') {
+      cookiesModal.style.display = 'none';
+    }
+  }
+});
+
+// Live Subtitle Interactive Previewer
+const subtitlePresetSelect = document.getElementById('subtitlePreset');
+const subtitlePreviewStage = document.getElementById('subtitlePreviewStage');
+const previewHookBanner = document.getElementById('previewHookBanner');
+const showHookHeaderCheckbox = document.getElementById('showHookHeader');
+
+function updateSubtitlePreviewTheme() {
+  if (!subtitlePresetSelect || !subtitlePreviewStage) return;
+  const val = subtitlePresetSelect.value || 'hormozi';
+  subtitlePreviewStage.className = `subtitle-preview-stage theme-${val}`;
+}
+
+if (subtitlePresetSelect) {
+  subtitlePresetSelect.addEventListener('change', updateSubtitlePreviewTheme);
+  updateSubtitlePreviewTheme();
+}
+
+if (showHookHeaderCheckbox && previewHookBanner) {
+  showHookHeaderCheckbox.addEventListener('change', () => {
+    previewHookBanner.style.display = showHookHeaderCheckbox.checked ? 'block' : 'none';
+  });
+}
+
+// Animated word bounce in preview stage
+let activeWordIdx = 0;
+const previewWords = ['pw1', 'pw2', 'pw3', 'pw4', 'pw5'];
+setInterval(() => {
+  previewWords.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (i === activeWordIdx) {
+      el.classList.add('active');
+    } else {
+      el.classList.remove('active');
+    }
+  });
+  activeWordIdx = (activeWordIdx + 1) % previewWords.length;
+}, 900);
 
 // Fetch Video from Link (YouTube / Twitch / etc.)
 fetchYtBtn.addEventListener('click', async () => {
@@ -59,41 +324,24 @@ fetchYtBtn.addEventListener('click', async () => {
       const platformTag = data.platform ? `[${data.platform}] ` : '';
       ytStatusDisplay.textContent = `Ready: ${platformTag}${data.title} (${Math.round(data.duration || 0)}s)`;
       generateBtn.disabled = false;
+      showToast(`Fetched: ${data.title}`);
     } else {
       ytStatusDisplay.textContent = `Failed: ${data.error || 'Could not download video'}`;
+      showToast(data.error || 'Failed to fetch video', 'error');
     }
   } catch (err) {
     ytStatusDisplay.textContent = `Error: ${err.message}`;
+    showToast(`Error: ${err.message}`, 'error');
   } finally {
     fetchYtBtn.disabled = false;
   }
 });
-
-const progressSection = document.getElementById('progressSection');
-const progressBar = document.getElementById('progressBar');
-const progressPct = document.getElementById('progressPct');
-const statusMessage = document.getElementById('statusMessage');
-
-const resultsSection = document.getElementById('resultsSection');
-const resultsSummary = document.getElementById('resultsSummary');
-const clipsGrid = document.getElementById('clipsGrid');
-
-// Init: check API key status
-fetch('/api/config')
-  .then(res => res.json())
-  .then(data => {
-    if (data.has_key) {
-      keyDot.classList.add('active');
-      apiKeyInput.placeholder = `AI Studio Key (${data.masked_key}) ✓`;
-    }
-  });
 
 // Save API Key
 saveKeyBtn.addEventListener('click', async () => {
   const key = apiKeyInput.value.trim();
   if (!key) return;
 
-  // Check if user accidentally pasted a video or web link
   if (key.startsWith('http://') || key.startsWith('https://') || key.includes('youtu') || key.includes('twitch')) {
     alert('⚠️ That looks like a video link, not an API key!\n\nWe have automatically moved it to the Video URL tab for you.');
     tabYoutube.click();
@@ -113,6 +361,7 @@ saveKeyBtn.addEventListener('click', async () => {
     keyDot.classList.add('active');
     apiKeyInput.value = '';
     apiKeyInput.placeholder = `AI Studio Key (${data.masked_key}) ✓`;
+    showToast('Google AI Studio Key saved securely!');
   }
 });
 
@@ -160,11 +409,14 @@ async function handleFileUpload(file) {
       currentVideoId = data.video_id;
       fileNameDisplay.textContent = `Ready: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
       generateBtn.disabled = false;
+      showToast(`Uploaded: ${file.name}`);
     } else {
       fileNameDisplay.textContent = `Upload failed: ${data.error || 'Unknown error'}`;
+      showToast(`Upload failed: ${data.error}`, 'error');
     }
   } catch (err) {
     fileNameDisplay.textContent = `Upload error: ${err.message}`;
+    showToast(`Upload error: ${err.message}`, 'error');
   }
 }
 
@@ -212,6 +464,7 @@ generateBtn.addEventListener('click', async () => {
     });
     const data = await res.json();
     if (data.task_id) {
+      currentTaskId = data.task_id;
       pollTask(data.task_id);
     } else {
       alert(`Error starting pipeline: ${data.error || 'Unknown'}`);
@@ -239,17 +492,32 @@ function pollTask(taskId) {
         clearInterval(pollInterval);
         progressSection.style.display = 'none';
         generateBtn.disabled = false;
+        currentTaskId = taskId;
         renderResults(task.result);
+        showToast('All viral shorts rendered successfully!');
       } else if (task.status === 'failed') {
         clearInterval(pollInterval);
         progressSection.style.display = 'none';
         generateBtn.disabled = false;
         alert(`Generation failed: ${task.error}`);
+        showToast(`Generation failed: ${task.error}`, 'error');
       }
     } catch (err) {
       console.error('Polling error', err);
     }
   }, 1000);
+}
+
+// Download All (.ZIP) Listener
+if (downloadAllZipBtn) {
+  downloadAllZipBtn.addEventListener('click', () => {
+    if (!currentTaskId) {
+      showToast('No active batch to download', 'info');
+      return;
+    }
+    showToast('Preparing your .ZIP archive with clips & post copy...');
+    window.location.href = `/api/download_all/${currentTaskId}`;
+  });
 }
 
 function renderResults(result) {
@@ -261,10 +529,9 @@ function renderResults(result) {
     const card = document.createElement('div');
     card.className = 'clip-card';
 
-    const social = clip.social_copy || {};
-    const ytText = social.youtube || `${clip.title} #Shorts #Viral`;
-    const ttText = social.tiktok || `${clip.hook || clip.title} #fyp #viral`;
-    const igText = social.instagram || `${clip.title} #reels #explore`;
+    const ytText = clip.social_copy?.youtube || `${clip.title} #Shorts`;
+    const ttText = clip.social_copy?.tiktok || `${clip.hook_headline || clip.title} #fyp`;
+    const igText = clip.social_copy?.instagram || `${clip.title} #reels`;
 
     let badgeClass = 'viral-blue';
     let badgeText = `⚡ ${clip.virality_score}/100`;
@@ -332,11 +599,31 @@ function renderResults(result) {
           </div>
         </div>
 
-        <a href="${clip.download_url}" class="btn-download" download>
-          ⬇️ Download Vertical Short
-        </a>
+        <div class="card-action-buttons" style="display: flex; gap: 8px; margin-top: 10px;">
+          <button type="button" class="btn-preview-modal btn-sm" style="flex: 1; padding: 10px 12px; background: #1e293b; border: 1px solid #475569; color: #f8fafc; border-radius: 8px; cursor: pointer; font-weight: 700;">
+            ▶️ Fullscreen Preview
+          </button>
+          <a href="${clip.download_url}" class="btn-download" style="flex: 1;" download>
+            ⬇️ Download Short
+          </a>
+        </div>
       </div>
     `;
+
+    // Hook up fullscreen preview modal
+    const previewBtn = card.querySelector('.btn-preview-modal');
+    if (previewBtn && videoModal && modalVideoPlayer) {
+      previewBtn.addEventListener('click', () => {
+        modalVideoPlayer.src = clip.preview_url;
+        modalVideoTitle.textContent = clip.title;
+        modalViralityBadge.textContent = `Virality: ${clip.virality_score}/100`;
+        modalQualityBadge.textContent = clip.quality || '1080p';
+        modalDownloadLink.href = clip.download_url;
+        modalDownloadLink.setAttribute('download', clip.video_file || 'short.mp4');
+        videoModal.style.display = 'flex';
+        modalVideoPlayer.play().catch(() => {});
+      });
+    }
 
     // Hook up social tab switcher for this card
     const textEl = card.querySelector('.social-text');
@@ -358,6 +645,7 @@ function renderResults(result) {
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(textEl.textContent).then(() => {
         copyBtn.textContent = 'Copied!';
+        showToast('Social post copy copied to clipboard!');
         setTimeout(() => copyBtn.textContent = 'Copy', 1500);
       });
     });

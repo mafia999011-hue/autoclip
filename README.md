@@ -61,6 +61,13 @@
 
 ## 🚀 Quick Start Guide
 
+### ⚡ 1-Click Launch (Recommended)
+Money Clip includes turnkey startup & shutdown scripts:
+```bash
+./start.sh    # Automatically clears port conflicts, checks health & launches server
+./stop.sh     # Cleanly stops the server and frees resources
+```
+
 ### 1. Termux (Android)
 ```bash
 # 1. Update packages and install prerequisites
@@ -74,7 +81,8 @@ cd money-clip
 pip install -r requirements.txt
 
 # 4. Start the Web Dashboard
-python3 app.py
+./start.sh
+# (or: python3 app.py)
 ```
 
 ### 2. Linux / Ubuntu / Debian
@@ -88,7 +96,7 @@ cd money-clip
 
 # 3. Install requirements & start
 pip install -r requirements.txt
-python3 app.py
+./start.sh
 ```
 
 ### 3. macOS

@@ -22,6 +22,12 @@
       <nav class="nav-links">
         <a href="/" class="nav-link active">⚡ Studio</a>
         <a href="/history" class="nav-link">📁 Saved Library</a>
+        <button type="button" id="openCookiesBtn" class="nav-btn" title="Manage YouTube cookies for age-restricted / private videos">
+          🍪 YouTube Auth <span id="cookieDot" class="cookie-dot"></span>
+        </button>
+        <button type="button" id="cleanCacheBtn" class="nav-btn" title="Clean temporary audio snippets and free disk space">
+          🧹 Clean Cache
+        </button>
       </nav>
 
       <div class="api-key-box">
@@ -117,6 +123,24 @@
             </select>
           </div>
 
+          <!-- Live Subtitle Style Interactive Previewer -->
+          <div class="setting-item full-width-item subtitle-preview-item">
+            <div class="preview-header">
+              <span class="preview-title">👁️ Live Subtitle Style Preview:</span>
+              <span class="preview-caption">Shows real font, color, bounce &amp; emoji pop</span>
+            </div>
+            <div class="subtitle-preview-stage" id="subtitlePreviewStage">
+              <div class="preview-hook-banner" id="previewHookBanner">🔥 TOP VIRAL HOOK BANNER 🔥</div>
+              <div class="preview-sub-words" id="previewSubWords">
+                <span class="p-word active" id="pw1">YEH</span>
+                <span class="p-word" id="pw2">SCENE</span>
+                <span class="p-word" id="pw3">MISS</span>
+                <span class="p-word" id="pw4">MAT</span>
+                <span class="p-word active" id="pw5">KARNA! 🚀</span>
+              </div>
+            </div>
+          </div>
+
           <div class="setting-item">
             <label>📐 9:16 Aspect Framing</label>
             <select id="reframeMode">
@@ -195,8 +219,15 @@
       <!-- Results Grid -->
       <section class="results-section" id="resultsSection" style="display: none;">
         <div class="results-header">
-          <h2>🔥 Generated Viral Shorts</h2>
-          <p id="resultsSummary" class="results-summary"></p>
+          <div>
+            <h2>🔥 Generated Viral Shorts</h2>
+            <p id="resultsSummary" class="results-summary"></p>
+          </div>
+          <div class="results-actions">
+            <button type="button" id="downloadAllZipBtn" class="btn-zip">
+              📦 Download All Clips (.ZIP)
+            </button>
+          </div>
         </div>
 
         <div class="clips-grid" id="clipsGrid">
@@ -205,6 +236,71 @@
       </section>
     </main>
   </div>
+
+  <!-- Video Player Modal -->
+  <div class="modal-backdrop" id="videoModal" style="display: none;">
+    <div class="modal-content video-modal-content">
+      <button type="button" class="modal-close" id="closeVideoModal">&times;</button>
+      <div class="modal-video-wrapper">
+        <video id="modalVideoPlayer" controls playsinline autoplay loop></video>
+      </div>
+      <div class="modal-video-info">
+        <h3 id="modalVideoTitle">Clip Preview</h3>
+        <div class="modal-score-badges">
+          <span class="badge" id="modalViralityBadge">Virality: 96/100</span>
+          <span class="badge" id="modalQualityBadge">1080p</span>
+        </div>
+        <div class="modal-action-row">
+          <a id="modalDownloadLink" class="btn-primary btn-modal-download" download>⬇️ Download Short</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- YouTube Cookies Modal -->
+  <div class="modal-backdrop" id="cookiesModal" style="display: none;">
+    <div class="modal-content cookies-modal-content">
+      <button type="button" class="modal-close" id="closeCookiesModal">&times;</button>
+      <h3>🍪 YouTube Cookies &amp; Authentication</h3>
+      <p class="modal-sub">
+        Upload your YouTube <code>cookies.txt</code> to download Age-Restricted (18+) or Member-Only YouTube videos directly.
+      </p>
+
+      <div class="cookie-status-card" id="cookieStatusCard">
+        <div class="c-status-row">
+          <span class="c-label">Current Status:</span>
+          <span id="cookieStatusText" class="c-val">Checking...</span>
+        </div>
+        <div class="c-status-row" id="cookieSizeRow" style="display: none;">
+          <span class="c-label">File Size:</span>
+          <span id="cookieSizeText" class="c-val">0 KB</span>
+        </div>
+      </div>
+
+      <div class="cookie-drop-zone" id="cookieDropZone">
+        <input type="file" id="cookieFileInput" accept=".txt" hidden>
+        <div class="cookie-drop-icon">📄</div>
+        <p><strong>Click to browse</strong> or drag &amp; drop <code>cookies.txt</code> here</p>
+      </div>
+
+      <div class="cookie-instructions">
+        <h4>How to export cookies in 30 seconds:</h4>
+        <ol>
+          <li>Install the free extension <strong>"Get cookies.txt LOCALLY"</strong> (Chrome / Firefox / Edge).</li>
+          <li>Log in to your standard YouTube account in your browser.</li>
+          <li>Click the extension icon and click <strong>"Export as cookies.txt"</strong>.</li>
+          <li>Drop that <code>cookies.txt</code> file here!</li>
+        </ol>
+      </div>
+
+      <div class="cookie-btn-row">
+        <button type="button" id="deleteCookiesBtn" class="btn-danger-outline" style="display: none;">🗑️ Remove Cookies</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
 
   <script src="/static/js/app.js"></script>
 </body>

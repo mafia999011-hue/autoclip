@@ -9,6 +9,65 @@ const apiKeyInput = document.getElementById('apiKeyInput');
 const saveKeyBtn = document.getElementById('saveKeyBtn');
 const keyDot = document.getElementById('keyDot');
 
+// Modal Elements
+const videoModal = document.getElementById('videoModal');
+const closeVideoModal = document.getElementById('closeVideoModal');
+const modalVideoPlayer = document.getElementById('modalVideoPlayer');
+const modalVideoTitle = document.getElementById('modalVideoTitle');
+const modalViralityBadge = document.getElementById('modalViralityBadge');
+const modalQualityBadge = document.getElementById('modalQualityBadge');
+const modalDownloadLink = document.getElementById('modalDownloadLink');
+
+// Toast Notification
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+  toast.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(15px)';
+    toast.style.transition = 'all 0.3s ease';
+    setTimeout(() => toast.remove(), 350);
+  }, 3500);
+}
+
+// Modal Listeners
+if (closeVideoModal && videoModal) {
+  closeVideoModal.addEventListener('click', () => {
+    videoModal.style.display = 'none';
+    if (modalVideoPlayer) {
+      modalVideoPlayer.pause();
+      modalVideoPlayer.src = '';
+    }
+  });
+}
+
+if (videoModal) {
+  videoModal.addEventListener('click', (e) => {
+    if (e.target === videoModal) {
+      videoModal.style.display = 'none';
+      if (modalVideoPlayer) {
+        modalVideoPlayer.pause();
+        modalVideoPlayer.src = '';
+      }
+    }
+  });
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && videoModal && videoModal.style.display === 'flex') {
+    videoModal.style.display = 'none';
+    if (modalVideoPlayer) {
+      modalVideoPlayer.pause();
+      modalVideoPlayer.src = '';
+    }
+  }
+});
+
 // Init API key check
 fetch('/api/config')
   .then(res => res.json())
@@ -39,6 +98,7 @@ saveKeyBtn.addEventListener('click', async () => {
     keyDot.classList.add('active');
     apiKeyInput.value = '';
     apiKeyInput.placeholder = `AI Studio Key (${data.masked_key}) ✓`;
+    showToast('API Key saved successfully!');
   }
 });
 
@@ -148,15 +208,33 @@ function renderClips(clips) {
         </div>
 
         <div class="history-actions-row">
-          <a href="${clip.download_url}" class="btn-download" download>
-            ⬇️ Download Short
+          <button type="button" class="btn-preview-modal btn-sm" style="flex: 1; padding: 10px 12px; background: #1e293b; border: 1px solid #475569; color: #f8fafc; border-radius: 8px; cursor: pointer; font-weight: 700;">
+            ▶️ Preview
+          </button>
+          <a href="${clip.download_url}" class="btn-download" style="flex: 1.5;" download>
+            ⬇️ Download
           </a>
-          <button class="btn-delete" data-file="${clip.video_file}">
+          <button class="btn-delete" data-file="${clip.video_file}" title="Delete this short">
             🗑️
           </button>
         </div>
       </div>
     `;
+
+    // Hook up fullscreen preview modal
+    const previewBtn = card.querySelector('.btn-preview-modal');
+    if (previewBtn && videoModal && modalVideoPlayer) {
+      previewBtn.addEventListener('click', () => {
+        modalVideoPlayer.src = clip.preview_url;
+        modalVideoTitle.textContent = clip.title;
+        modalViralityBadge.textContent = `Virality: ${clip.virality_score}/100`;
+        modalQualityBadge.textContent = clip.quality || '1080p';
+        modalDownloadLink.href = clip.download_url;
+        modalDownloadLink.setAttribute('download', clip.video_file || 'short.mp4');
+        videoModal.style.display = 'flex';
+        modalVideoPlayer.play().catch(() => {});
+      });
+    }
 
     // Social tabs
     const textEl = card.querySelector('.social-text');
@@ -175,6 +253,7 @@ function renderClips(clips) {
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(textEl.textContent).then(() => {
         copyBtn.textContent = 'Copied!';
+        showToast('Social copy copied to clipboard!');
         setTimeout(() => copyBtn.textContent = 'Copy', 1500);
       });
     });
@@ -190,6 +269,7 @@ function renderClips(clips) {
         });
         const data = await res.json();
         if (data.status === 'deleted') {
+          showToast(`Deleted: ${clip.title}`);
           card.style.opacity = '0';
           card.style.transform = 'scale(0.95)';
           setTimeout(() => {
@@ -199,10 +279,10 @@ function renderClips(clips) {
             if (allClips.length === 0) emptyState.style.display = 'block';
           }, 200);
         } else {
-          alert('Could not delete clip');
+          showToast('Could not delete clip', 'error');
         }
       } catch (err) {
-        alert(`Error deleting clip: ${err.message}`);
+        showToast(`Error deleting clip: ${err.message}`, 'error');
       }
     });
 

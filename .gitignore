@@ -25,3 +25,9 @@ ENV/
 Thumbs.db
 .vscode/
 .idea/
+
+# Runtime / Server state
+app.pid
+server.log
+data/cookies.txt
+cookies.txt

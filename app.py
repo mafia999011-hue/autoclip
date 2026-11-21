@@ -1,8 +1,11 @@
 import os
+import io
 import json
 import uuid
+import time
+import zipfile
 import threading
-from flask import Flask, request, jsonify, render_template, send_from_directory, Response
+from flask import Flask, request, jsonify, render_template, send_from_directory, send_file, Response
 from werkzeug.utils import secure_filename
 from autoclip.pipeline import AutoClipPipeline
 from autoclip.downloader import download_online_video
@@ -222,6 +225,141 @@ def stream_video(filename):
 def download_clip(filename):
     safe_name = os.path.basename(filename)
     return send_from_directory(app.config["OUTPUT_FOLDER"], safe_name, as_attachment=True)
+
+@app.route("/health")
+def health_check():
+    return jsonify({
+        "status": "healthy",
+        "service": "Money Clip",
+        "version": "2.0.0",
+        "has_api_key": bool(api_key_store.get("key")),
+        "uptime": time.time()
+    })
+
+@app.route("/api/cookies", methods=["GET", "POST", "DELETE"])
+def manage_cookies():
+    cookie_path = os.path.join(app.config["DATA_FOLDER"], "cookies.txt")
+    if request.method == "GET":
+        exists = os.path.exists(cookie_path) and os.path.getsize(cookie_path) > 10
+        size_kb = round(os.path.getsize(cookie_path) / 1024, 1) if exists else 0
+        return jsonify({
+            "has_cookies": exists,
+            "filename": "cookies.txt" if exists else None,
+            "size_kb": size_kb
+        })
+    elif request.method == "POST":
+        if "cookies" not in request.files:
+            return jsonify({"error": "No cookies file provided"}), 400
+        f = request.files["cookies"]
+        if not f.filename:
+            return jsonify({"error": "Empty file"}), 400
+        f.save(cookie_path)
+        return jsonify({
+            "status": "saved",
+            "has_cookies": True,
+            "size_kb": round(os.path.getsize(cookie_path) / 1024, 1)
+        })
+    elif request.method == "DELETE":
+        if os.path.exists(cookie_path):
+            try:
+                os.remove(cookie_path)
+            except Exception:
+                pass
+        return jsonify({"status": "deleted", "has_cookies": False})
+
+@app.route("/api/clean_cache", methods=["POST"])
+def clean_cache():
+    freed_bytes = 0
+    now = time.time()
+    # Clean files older than 48 hours or temp snippet audio in uploads/
+    cleaned_count = 0
+    for folder in [app.config["UPLOAD_FOLDER"], app.config["OUTPUT_FOLDER"]]:
+        if not os.path.exists(folder):
+            continue
+        for fn in os.listdir(folder):
+            fp = os.path.join(folder, fn)
+            # Remove temp snippets or files older than 48 hours
+            is_snippet = fn.startswith("snippet_") or fn.startswith("test_") or fn.endswith(".wav")
+            is_old = (now - os.path.getmtime(fp)) > (48 * 3600)
+            if is_snippet or (is_old and not fn.endswith(".json")):
+                try:
+                    freed_bytes += os.path.getsize(fp)
+                    os.remove(fp)
+                    cleaned_count += 1
+                except Exception:
+                    pass
+    return jsonify({
+        "status": "cleaned",
+        "freed_mb": round(freed_bytes / (1024 * 1024), 2),
+        "files_removed": cleaned_count
+    })
+
+@app.route("/api/download_all/<task_id>")
+def download_all_zip(task_id):
+    task = tasks.get(task_id)
+    if not task or not task.get("result"):
+        return jsonify({"error": "Task not found or not completed"}), 404
+
+    clips = task["result"].get("clips", [])
+    if not clips:
+        return jsonify({"error": "No clips found for this task"}), 404
+
+    memory_zip = io.BytesIO()
+    with zipfile.ZipFile(memory_zip, "w", zipfile.ZIP_DEFLATED) as zf:
+        # 1. Add each MP4 clip
+        for c in clips:
+            vf = c.get("video_file")
+            if vf:
+                vpath = os.path.join(app.config["OUTPUT_FOLDER"], vf)
+                if os.path.exists(vpath):
+                    zf.write(vpath, arcname=vf)
+
+        # 2. Add complete Social Captions & Hook Strategy doc
+        captions_txt = [
+            "=" * 60,
+            " MONEY CLIP — AI VIRAL HOOKS & SOCIAL POST CAPTIONS",
+            "=" * 60,
+            ""
+        ]
+        for c in clips:
+            c_id = c.get("id", 1)
+            title = c.get("title", f"Clip {c_id}")
+            v_score = c.get("virality_score", 95)
+            h_score = c.get("hook_score", 95)
+            hook_banner = c.get("hook_headline", "")
+            hook_text = c.get("hook", "")
+            tip = c.get("viral_action_tip", "")
+            copy_dict = c.get("social_copy", {})
+
+            captions_txt.extend([
+                f"--- [CLIP #{c_id}] {title} ---",
+                f"Virality Score: {v_score}/100 | Hook Score: {h_score}/100",
+                f"Hook Headline: {hook_banner}",
+                f"First 3s Spoken Hook: \"{hook_text}\"",
+                f"Viral Action Tip: {tip}",
+                "",
+                "📱 YOUTUBE SHORTS POST COPY:",
+                copy_dict.get("youtube", ""),
+                "",
+                "⚡ TIKTOK POST COPY:",
+                copy_dict.get("tiktok", ""),
+                "",
+                "📸 INSTAGRAM REELS POST COPY:",
+                copy_dict.get("instagram", ""),
+                "",
+                "=" * 60,
+                ""
+            ])
+
+        zf.writestr("social_captions.txt", "\n".join(captions_txt))
+
+    memory_zip.seek(0)
+    return send_file(
+        memory_zip,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=f"MoneyClip_{task_id}.zip"
+    )
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
